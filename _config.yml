@@ -1,6 +1,8 @@
 # Site settings
 title: "Eric A Mann"
 description: "A resume template for Jekyll and GitHub Pages sites."
+url: https://eamann.com
+enforce_ssl: eamann.com
 
 # Build settings
 markdown: kramdown
@@ -12,8 +14,7 @@ sass:
 resume_avatar:                  "true"
 resume_name:                    "Eric A Mann"
 resume_title:                   "Tekton"
-resume_contact_email:
-  "eric@eamann.com"
+resume_contact_email:           "eric@eamann.com"
 
 # use "yes" to display the email contact button,
 # "no" to display an "I'm not looking for work" message,
