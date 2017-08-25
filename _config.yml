@@ -29,7 +29,7 @@ resume_section_education:       true
 resume_section_projects:        true
 resume_section_skills:          false
 resume_section_recognition:     false
-resume_section_links:           false
+resume_section_links:           true
 resume_section_associations:    false
 
 # Resume social links
