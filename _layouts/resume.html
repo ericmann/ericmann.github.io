@@ -51,13 +51,15 @@
         <!-- Duplicate these resume-item elements and edit accordingly for each job you want to add here -->
         <div class="resume-item" itemscope itemprop="worksFor" itemtype="http://schema.org/Organization">
           <h3 class="resume-item-title" itemprop="name">Vacasa LLC</h3>
-          <h4 class="resume-item-details" itemprop="description">Team Lead Software Engineer - Data Products &bull; July 2018 &mdash; Present</h4>
+          <h4 class="resume-item-details" itemprop="description">Director of Engineering &bull; Jan 2019 &mdash; Present</h4>
+          <h4 class="resume-item-details" itemprop="description">Team Lead Software Engineer - Data Products &bull; July 2018 &mdash; Jan 2019</h4>
         </div><!-- end of resume-item -->
 
         <!-- Duplicate these resume-item elements and edit accordingly for each job you want to add here -->
         <div class="resume-item" itemscope itemprop="worksFor" itemtype="http://schema.org/Organization">
           <h3 class="resume-item-title" itemprop="name">Tozny, LLC</h3>
-          <h4 class="resume-item-details" itemprop="description">Tekton &bull; May 2016 &mdash; July 2018</h4>
+          <h4 class="resume-item-details" itemprop="description">Head of Engineering &bull; Sept 2017 &mdash; July 2018</h4>
+          <h4 class="resume-item-details" itemprop="description">Software Engineer &bull; May 2016 &mdash; Sept 2017</h4>
           <p class="resume-item-copy">Developed secure authentication, identification, and privacy management tools and hosted SaaS platform for enterprise partners. Helped design and build a scalable, end-to-end encrypted database for managing consumers' personally identifying information (PII).</p>
           <ul class="resume-item-list">
             <li>Devised and engineered a dynamically-scalable, real-time event notification system for record publication.</li>
@@ -105,18 +107,18 @@
 
         <div class="resume-item" itemscope itemprop="alumniOf" itemtype="http://schema.org/CollegeOrUniversity">
           <h3 class="resume-item-title" itemprop="name">Portland State University</h3>
-          <h4 class="resume-item-details" itemprop="description">Master of International Management, Global Marketing &bull; 2006-2007</h4>
+          <h4 class="resume-item-details" itemprop="description">Master of International Management, Global Marketing &bull; 2007</h4>
         </div>
 
         <div class="resume-item" itemscope itemprop="alumniOf" itemtype="http://schema.org/CollegeOrUniversity">
           <h3 class="resume-item-title" itemprop="name">University of Oregon</h3>
-          <h4 class="resume-item-details" itemprop="description">Bachelor of Science, Political Science &bull; 2005-2006</h4>
+          <h4 class="resume-item-details" itemprop="description">Bachelor of Science, Political Science &bull; 2006</h4>
           <p class="resume-item-copy">Recipient of the Centurion Award</p>
         </div>
 
         <div class="resume-item" itemscope itemprop="alumniOf" itemtype="http://schema.org/CollegeOrUniversity">
           <h3 class="resume-item-title" itemprop="name">University of Oregon</h3>
-          <h4 class="resume-item-details" itemprop="description">Bachelor of Science, Physics/Mathematics &bull; 2002-2005</h4>
+          <h4 class="resume-item-details" itemprop="description">Bachelor of Science, Physics/Mathematics &bull; 2005</h4>
           <p class="resume-item-copy">Recipient of the Computer Science, Engineering, and Mathematics Scholar Award</p>
         </div>
 
@@ -146,6 +148,12 @@
         <header class="section-header">
           <h2>Public Speaking</h2>
         </header>
+
+        <div class="resume-item">
+          <h3 class="resume-item-title">Intro of PHP Encryption</h3>
+          <h4 class="resume-item-details">php[world] &bull; November 2018</h4>
+          <p class="resume-item-copy">Modern PHP supports modern encryption: Sodium. This new interface provides a set of opinionated cryptographic primitives that help prevent you from making a costly mistake. Sodium allows symmetric encryption, public/private encryption, and data signing just like you’re used to in other languages. It’s also <i>native</i> to PHP as of version 7.2.</p>
+        </div>
 
         <div class="resume-item">
           <h3 class="resume-item-title">Evolution of PHP Security</h3>
@@ -274,7 +282,7 @@
       {% endif %}
 
       <footer class="page-footer">
-        <p class="footer-line">Copyright &copy; 2017 Eric A Mann</p>
+        <p class="footer-line">Copyright &copy; {{ 'now' | date: "%Y" }} Eric A Mann</p>
       </footer>
 
     </div>
