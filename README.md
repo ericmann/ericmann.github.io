@@ -1,4 +1,4 @@
-# resume-template
+# Eric Mann's Personal Website
 
 *A simple Jekyll + GitHub Pages powered resume template.*
 
