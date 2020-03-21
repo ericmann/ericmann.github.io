@@ -11,7 +11,7 @@
 
         <!-- You can turn off the avatar in _config.yml by setting to false -->
         {% if site.resume_avatar == 'true' %}
-        <img src="images/avatar.png" alt="my photo" class="avatar" itemprop="image">
+        <img src="images/avatar.jpg" alt="my photo" class="avatar" itemprop="image">
         {% endif %}
 
         <!-- Your name is defined in the _config.yml file -->
@@ -27,8 +27,8 @@
         </div>
 
         <div class="executive-summary" itemprop="description">
-          <p>I am a storyteller and outdoorsman from the Pacific Northwest. When I'm not working with new tech in web development, you can probably find me out running, climbing, hunting, or hiking in the woods.</p>
-          <p>I am also a seasoned web developer with experience in languages from JavaScript to Ruby to C#. I have been building websites of all shapes and sizes for the better part of a decade and continue to experiment with new technologies and techniques.</p>
+          <p>I am a storyteller and outdoorsman from the Pacific Northwest. When I'm not working with new tech in web and software development, you can probably find me out running, climbing, hunting, or hiking in the woods.</p>
+          <p>I am also a seasoned web developer with experience in languages from PHP to JavaScript to Scala to C#. I have been building websites and applications of all shapes and sizes for over a decade and continue to experiment with new technologies and techniques.</p>
         </div>
 
         {% if site.resume_looking_for_work == 'yes' %}
@@ -150,36 +150,20 @@
           <h2>Recent Public Speaking</h2>
         </header>
 
-        <div class="resume-item">
-          <h3 class="resume-item-title">Intro of PHP Encryption</h3>
-          <h4 class="resume-item-details">php[world] &bull; November 2018</h4>
-          <p class="resume-item-copy">Modern PHP supports modern encryption: Sodium. This new interface provides a set of opinionated cryptographic primitives that help prevent you from making a costly mistake. Sodium allows symmetric encryption, public/private encryption, and data signing just like you’re used to in other languages. It’s also <i>native</i> to PHP as of version 7.2.</p>
-        </div>
-
-        <div class="resume-item">
-          <h3 class="resume-item-title">Evolution of PHP Security</h3>
-          <h4 class="resume-item-details">php[tek] &bull; May 2018</h4>
-          <p class="resume-item-copy">[Training Class] PHP is a secure, modern programming language suitable for any number of applications. As with any other language or tool, PHP can only be used securely if the developers using it wield their tools safely.</p>
-        </div>
-
-        <div class="resume-item">
-          <h3 class="resume-item-title"><a href="https://nomadphp.com/product/2fa-u2f-oob-terrifying-security-acronyms/">2FA, U2F, OOB, and Other Terrifying Security Acronyms</a></h3>
-          <h4 class="resume-item-details">NomadPHP &bull; Feb 2018</h4>
-          <p class="resume-item-copy">In 2016, NIST announced it was deprecating SMS-based 2FA (second-factor authentication) from its Digital Authentication Guidance. As the internet works to harden application and online security, what are the proper options available for truly secure authentication? What are those OOB (out-of-band) transactions anyway? Why is identity security so hard? Learn about the tools that define the identity security landscape and how to easily integrate strong identity verification methods with your existing services. BYOA (bring your own acronyms).</p>
-        </div>
-
-        <div class="resume-item">
-          <h3 class="resume-item-title">PHP Userland Security - Step by Step and Beyond</h3>
-          <h4 class="resume-item-details">php[world] &bull; Nov 2017</h4>
-          <p class="resume-item-copy">Too often, the security of our applications is an afterthought rather than a pillar of design. This leads to embarrassing leaks of information, unintended violations of security best practices, or even critical vulnerabilities. This tutorial will walk through securing an app from first principles through smooth UX. We'll navigate password hashing, two factor authentication, and login by way of magic links. We'll then go even further with auth by way of mobile push notifications!</p>
-        </div>
-
-        <div class="resume-item">
-          <h3 class="resume-item-title">Going Password-Free</h3>
-          <h4 class="resume-item-details">SunshinePHP &bull; Feb 2017</h4>
-          <p class="resume-item-copy">Should a password be long and complex? What about a string of easy-to-remember words instead? Are password managers the best way forward? What about multiple factors? Is there a better way?</p>
-          <p class="resume-item-copy">These are all questions your users have: learn how to answer them and how to make security easy by moving beyond passwords for your web app entirely with magic link based authentication! Your users just click a link; they don't have to remember anything.</p>
-        </div>
+        {% assign events = site.speaking | sort: 'date' | reverse %}
+        {% for event in events %}
+          <div class="resume-item">
+            <h3 class="resume-item-title">
+              {% if event.link %}
+                <a href="{{ item.link }}">{{ event.title }}</a>
+              {% else %}
+                {{ event.title }}
+              {% endif %}
+            </h3>
+            <h4 class="resume-item-details">{{ event.conference }} &bull; {{ event.when }}</h4>
+            <p class="resume-item-copy">{{ event.content | markdownify }}</p>
+          </div>
+        {% endfor %}
 
       </section>
       <!-- end Projects -->
