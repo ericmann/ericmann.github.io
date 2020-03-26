@@ -49,6 +49,8 @@ resume_theme:                   default
 collections:
   speaking:
     output: false
+  roles:
+    output: false
 
 # Note: when editing locally, remember to restart
 # your Jekyll server when you edit this file. Changes

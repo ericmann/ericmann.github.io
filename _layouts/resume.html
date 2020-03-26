@@ -48,51 +48,16 @@
           <h2>Experience</h2>
         </header>
 
-        <!-- Duplicate these resume-item elements and edit accordingly for each job you want to add here -->
+        {% assign roles = site.roles | sort: 'date' | reverse %}
+        {% for role in roles %}
         <div class="resume-item" itemscope itemprop="worksFor" itemtype="http://schema.org/Organization">
-          <h3 class="resume-item-title" itemprop="name">Vacasa LLC</h3>
-          <h4 class="resume-item-details" itemprop="description">Director of Engineering &bull; Jan 2019 &mdash; Present</h4>
-          <h4 class="resume-item-details" itemprop="description">Team Lead Software Engineer - Data Products &bull; July 2018 &mdash; Jan 2019</h4>
-          <p class="resume-item-copy">Directly managed a teams of data scientists, data engineers, and cross-functional software engineers focused on  improving yield management, real estate growth, advertising, and field operations for a 15k unit portfolio. Helped design, launch, and scale machine learning systems accounting for over $600MM in gross revenue.</p>
+          <h3 class="resume-item-title" itemprop="name">{{ role.employer }}</h3>
+          {% for position in role.positions %}
+          <h4 class="resume-item-details" itemprop="description">{{ position.title }} &bull; {{ position.start }} &mdash; {{ position.end }}</h4>
+          {% endfor %}
+          <p class="resume-item-copy">{{ role.content | markdownify }}</p>
         </div><!-- end of resume-item -->
-
-        <!-- Duplicate these resume-item elements and edit accordingly for each job you want to add here -->
-        <div class="resume-item" itemscope itemprop="worksFor" itemtype="http://schema.org/Organization">
-          <h3 class="resume-item-title" itemprop="name">Tozny, LLC</h3>
-          <h4 class="resume-item-details" itemprop="description">Head of Engineering &bull; Sept 2017 &mdash; July 2018</h4>
-          <h4 class="resume-item-details" itemprop="description">Software Engineer &bull; May 2016 &mdash; Sept 2017</h4>
-          <p class="resume-item-copy">Developed secure authentication, identification, and privacy management tools and hosted SaaS platform for enterprise partners. Helped design and build a scalable, end-to-end encrypted database for managing consumers' personally identifying information (PII).</p>
-          <ul class="resume-item-list">
-            <li>Devised and engineered a dynamically-scalable, real-time event notification system for record publication.</li>
-            <li>Designed the secure onboarding and registration system powering the <a href="https://www.masstransitmag.com/technology/press-release/12289018/moovel-north-america-atlanta-streetcar-launches-new-moovel-beta-mobile-app">Atlanta Streetcar's mobile application</a>.</li>
-            <li>In partnership with Amazon, <a href="https://thenewstack.io/lambdaedge-moves-personalized-web-content-closer-norm/">leveraged Lambda@Edge</a> (while in beta) to safely and securely deliver single-page cryptographic web applications to end users.</li>
-            <li>Designed and developed a secure, end-to-end encrypted data storage solution used by clients <a href="https://www.cra.com/company/news/darpa-awards-charles-river-analytics-contract-build-smartphone-app-detects-warfighter">such as DARPA</a> to protect sensitive information while at rest.</li>
-          </ul>
-        </div><!-- end of resume-item -->
-
-        <!-- another resume item -->
-        <div class="resume-item" itemscope itemprop="worksFor" itemtype="http://schema.org/Organization">
-          <h3 class="resume-item-title" itemprop="name">10up, Inc</h3>
-          <h4 class="resume-item-details" itemprop="description">Lead Web Engineer &bull; Nov 2014 &mdash; April 2016</h4>
-          <h4 class="resume-item-details" itemprop="description">Senior Web Engineer &bull; Sept 2012 &mdash; Nov 2014</h4>
-          <p class="resume-item-copy">Developed engineering plans for various clients in partnership with the engineering management team. Created prototypes and final implementations of advanced systems integration tools and API libraries.</p>
-          <ul class="resume-item-list">
-            <li>Reviewed project code for standards compliance, secure coding practices, and enterprise-level scalability.</li>
-            <li>Detected and remediated any server vulnerabilities related to client hosting environments.</li>
-            <li>Launched multiple, high-profile, enterprise-grade website redesigns, <a href="https://techcrunch.com/2013/10/15/techcrunch-has-redesigned-again/">including TechCrunch.com</a>.</li>
-          </ul>
-        </div><!-- end of resume-item -->
-
-        <!-- by now you're getting the picture... -->
-        <div class="resume-item" itemscope itemprop="worksFor" itemtype="http://schema.org/Organization">
-          <h3 class="resume-item-title" itemprop="name">Hawksoft, Inc</h3>
-          <h4 class="resume-item-details" itemprop="description">Web Developer &bull; July 2011 &mdash; Sept 2012</h4>
-          <ul class="resume-item-list">
-            <li>Developed custom content management system for new corporate website.</li>
-            <li>Designed and built a custom web service API for managing media and customer subscriptions.</li>
-            <li>Maintained secure customer forums and web-enabled service applications.</li>
-          </ul>
-        </div><!-- end of resume-item -->
+        {% endfor %}
 
       </section>
       <!-- end Experience -->
