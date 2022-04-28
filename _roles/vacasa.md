@@ -2,9 +2,12 @@
 employer: Vacasa, LLC
 date: 2018-07-18
 positions:
+  - title: VP of Information Security
+    start: April 2022
+    end: Present
   - title: Director of Engineering
     start: Jan 2019
-    end: Present
+    end: April 2022
   - title: Team Lead Software Engineer - Data Products
     start: July 2018
     end: Jan 2019
