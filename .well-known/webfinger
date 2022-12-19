@@ -1,0 +1,25 @@
+{
+    "subject":"acct:ericmann@tekton.network",
+    "aliases":
+    [
+        "https://tekton.network/@ericmann",
+        "https://tekton.network/users/ericmann"
+    ],
+    "links":
+    [
+        {
+            "rel":"http://webfinger.net/rel/profile-page",
+            "type":"text/html",
+            "href":"https://tekton.network/@ericmann"
+        },
+        {
+            "rel":"self",
+            "type":"application/activity+json",
+            "href":"https://tekton.network/users/ericmann"
+        },
+        {
+            "rel":"http://ostatus.org/schema/1.0/subscribe",
+            "template":"https://tekton.network/authorize_interaction?uri={uri}"
+        }
+    ]
+}
