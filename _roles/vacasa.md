@@ -4,7 +4,7 @@ date: 2018-07-18
 positions:
   - title: VP of Information Security
     start: April 2022
-    end: Present
+    end: April 2023
   - title: Director of Engineering
     start: Jan 2019
     end: April 2022
