@@ -1,0 +1,174 @@
+# If you have a `resume.json` file, copy it into `_data` and delete this file.
+# If you don't have a JSON Resume you can just edit this YAML file instead.
+# See also: <https://jsonresume.org/>.
+basics:
+  name: "Eric Mann"
+  label: "Tekton"
+  picture: "https://eamann.com/images/avatar.jpg"
+  email: "eric@eamann.com"
+  #phone: "(912) 555-4321"
+  website: "https://eamann.com"
+  summary: >
+    Eric Mann is a well-established cybersecurity, software, and infrastructure engineer having 
+    led multiple teams of various sizes in the private sector. Eric's has experience architecting 
+    highly-available and resilient SaaS platforms, scalable e-commerce websites, and industry-defining AI/ML 
+    operations. In addition to leading technical teams, Eric frequently lectures at events on both scalable 
+    engineering and cybersecurity. He also publishes books on programming and secure software design. Eric 
+    is a member of both [ISACA](https://www.isaca.org/) (Information Systems Audit and Control Association) 
+    and [OWASP](https://owasp.org/) (Open Worldwide Application Security Project) and is a member of [the 
+    team responsible for maintaining](https://www.php.net/downloads.php#gpg-8.3) the PHP programming language.
+  location:
+    address: "PO Box 1534"
+    city: "Tualatin"
+    postalCode: "OR 97062"
+    countryCode: "US"
+#    region: "Oregon"
+  profiles:
+#    - network: "Twitter"
+#      username: "RHendricksCEO"
+#      url: ""
+    - network: "LinkedIn"
+      username: "Eric Mann"
+      url: "https://linkedin.com/in/ericallenmann/"
+work:
+  - company: "Rebellion Defense"
+    position: "Head of Infrastructure Engineering"
+    website: "https://rebelliondefense.com"
+    startDate: "2023-05-01"
+    endDate: ""
+    summary: ""
+  - company: "Vacasa, LLC"
+    position: "VP of Information Security"
+    website: "https://vacasa.com"
+    startDate: "2018-07-01"
+    endDate: "2023-04-01"
+    summary: >
+      Promoted from Team Lead to Director after 6 months and to VP after 3 years. Directly managed a teams of data 
+      scientists, data engineers, and cross-functional software engineers focused on improving yield management, 
+      real estate growth, advertising, and field operations for a 35k unit portfolio. Helped design, launch, and 
+      scale machine learning systems accounting for over $1.3Bn in gross revenue.
+    highlights:
+      - "Built a comprehensive, enterprise-grade security program from the ground up, managing team building, tool acquisition, and policy integrations."
+      - "Established roadmaps for fully containerized infrastructure and highly-available data systems enabling zero-downtime systems maintenance."
+      - "Lead central infrastructure, data platform, reliability, and security teams to build core systems enabling a successful $4.4Bn IPO."
+  - company: "Tozny, LLC"
+    position: "Head of Engineering"
+    website: "https://tozny.com"
+    startDate: "2016-05-01"
+    endDate: "2018-07-01"
+    summary: >
+      Promoted from Software Engineer to Head of Engineering after 1 year. Developed secure authentication, identification, and 
+      privacy management tools and hosted SaaS platform for enterprise partners. Helped design and build a scalable, end-to-end 
+      encrypted database for managing consumers' personally identifying information (PII).
+    highlights:
+      - "Built a comprehensive, enterprise-grade security program from the ground up, managing team building, tool acquisition, and policy integrations."
+      - "Established roadmaps for fully containerized infrastructure and highly-available data systems enabling zero-downtime systems maintenance."
+      - "Lead central infrastructure, data platform, reliability, and security teams to build core systems enabling a successful $4.4Bn IPO."
+  - company: "10up, Inc"
+    position: "Lead Web Engineer"
+    website: "https://10up.com"
+    startDate: "2012-09-01"
+    endDate: "2016-04-01"
+    summary: >
+      Promoted from Senior to Lead after 2 years. Developed engineering plans for various clients in partnership with the 
+      engineering management team. Created prototypes and final implementations of advanced systems integration tools and 
+      API libraries.
+    highlights:
+      - "Reviewed project code for standards compliance, secure coding practices, and enterprise-level scalability."
+      - "Detected and remediated any server vulnerabilities related to client hosting environments."
+      - "Launched multiple, high-profile, enterprise-grade website redesigns, including TechCrunch.com."
+  - company: "Hawksoft, Inc"
+    position: "Web Developer"
+    website: "https://www.hawksoft.com/"
+    startDate: "2011-07-01"
+    endDate: "2012-09-01"
+    summary: ""
+    highlights:
+      - "Developed custom content management system for new corporate website."
+      - "Designed and built a custom web service API for managing media and customer subscriptions."
+      - "Maintained secure customer forums and web-enabled service applications."
+# volunteer:
+#   - organization: "CoderDojo"
+#     position: "Teacher"
+#     website: "https://coderdojo.com/"
+#     startDate: "2012-01-01"
+#     endDate: "2013-01-01"
+#     summary: "Global movement of free coding clubs for young people."
+#     highlights:
+#       - "Awarded 'Teacher of the Month'"
+education:
+  - institution: "Portland State University"
+    area: "International Management"
+    studyType: "Master"
+    startDate: "2006-06-01"
+    endDate: "2007-08-01"
+#    gpa: "4.0"
+#     courses:
+#       - "DB1101 - Basic SQL"
+#       - "CS2011 - Java Introduction"
+  - institution: "University of Oregon"
+    area: "Science, Political Science"
+    studyType: "Bachelor"
+    startDate: "2005-09-01"
+    endDate: "2006-06-01"
+  - institution: "University of Oregon"
+    area: "Science, Physics / Mathematcis"
+    studyType: "Bachelor"
+    startDate: "2002-09-01"
+    endDate: "2005-06-01"    
+# awards:
+#   - title: "Digital Compression Pioneer Award"
+#     date: "2014-11-01"
+#     awarder: "Techcrunch"
+#     summary: "There is no spoon."
+publications:
+  - name: "PHP Cookbook"
+    publisher: "O'Reilly Media"
+    releaseDate: "2023-05-01"
+    website: "https://amzn.to/3V3ExHE"
+    summary: |
+      If you're a PHP developer looking for proven solutions to common problems, this cookbook 
+      provides code recipes to help you resolve numerous scenarios. By leveraging modern versions 
+      of PHP through version 8.2, _PHP Cookbook_'s self-contained recipes provide fully realized 
+      solutions that can help you solve similar problems in your day-to-day work.
+  - name: "Security Principles for PHP Applications"
+    publisher: "php[architect]"
+    releaseDate: "2017-12-01"
+    website: "https://www.phparch.com/books/security-principles-for-php-applications/"
+    summary: |
+      Security is an ongoing process not something to add right before your app launches. In this 
+      book, you'll learn how to write secure PHP applications from first principles. Why wait until 
+      your site is attacked or your data is breached? Prevent your exposure by being aware of the 
+      ways a malicious user might hijack your web site or API. Discover how to secure your 
+      applications against many of the vulnerabilities exploited by attackers.
+  - name: "Security Corner | Monthly Column"
+    publisher: "php[architect]"
+    releaseDate: ""
+    website: "https://www.phparch.com"
+    summary: "Recurring monthly column about information security and PHP design best practices."
+# skills:
+#   - name: "Web Development"
+#     level: "Master"
+#     keywords:
+#       - "HTML"
+#       - "CSS"
+#       - "Javascript"
+#   - name: "Compression"
+#     level: "Master"
+#     keywords:
+#       - "Mpeg"
+#       - "MP4"
+#       - "GIF"
+# languages:
+#   - language: "English"
+#     fluency: "Native speaker"
+# interests:
+#   - name: "Wildlife"
+#     keywords:
+#       - "Ferrets"
+#       - "Unicorns"
+# references:
+#   - name: "Erlich Bachman"
+#     reference: >
+#       It is my pleasure to recommend Richard, his performance working as a consultant for Main St.
+#       Company proved that he will be a valuable addition to any company.
