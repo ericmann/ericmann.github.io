@@ -25,11 +25,10 @@ title:                 Eric A Mann
 # A short description (~150 chars) of the page used for the meta description tag.
 # Can use markdown, but no more than one paragraph (enforced by `>`)
 description:           >
-  Hydejack is a boutique Jekyll theme for hackers, nerds, and academics,
-  with a focus on personal sites that are meant to impress.
+  Eric Mann is a well-established cybersecurity, infrastructure, and software engineer and leader.
 
 # A shorter description for the sidebar.
-tagline:               Change `tagline` in `_config.yml`
+tagline:               Tekton, builder, coder
 
 # A list of keywords for your blog
 keywords:              []
@@ -368,6 +367,7 @@ social:
   links:
 #     - https://twitter.com/<username>
      - https://github.com/ericmannn
+     - https://tekton.network/@ericmann
 
 
 # Plugin Configs

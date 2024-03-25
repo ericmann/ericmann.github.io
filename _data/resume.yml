@@ -9,7 +9,7 @@ basics:
   #phone: "(912) 555-4321"
   website: "https://eamann.com"
   summary: >
-    Eric Mann is a well-established cybersecurity, software, and infrastructure engineer having 
+    Eric Mann is a well-established cybersecurity, infrastructure, and software engineer and leader having 
     led multiple teams of various sizes in the private sector. Eric's has experience architecting 
     highly-available and resilient SaaS platforms, scalable e-commerce websites, and industry-defining AI/ML 
     operations. In addition to leading technical teams, Eric frequently lectures at events on both scalable 
@@ -30,13 +30,20 @@ basics:
     - network: "LinkedIn"
       username: "Eric Mann"
       url: "https://linkedin.com/in/ericallenmann/"
+    - network: "Mastodon"
+      username: "Mastodon"
+      url: "https://tekton.network/@ericmann"
 work:
   - company: "Rebellion Defense"
-    position: "Head of Infrastructure Engineering"
+    position: "VP, Engineering"
     website: "https://rebelliondefense.com"
     startDate: "2023-05-01"
     endDate: ""
     summary: ""
+    highlights:
+      - "Designed and deployed a scalable edge <b>Kubernetes-compatible</b> runtime platform."
+      - "Managed cross-functional teams empowering <b>federated devops</b>, IT/SaaS administration, and engineering support across environments."
+      - "Reorganized product engineering to focus on targeting customer objectives and feature development in support of greenfield strategic initiatives."
   - company: "Vacasa, LLC"
     position: "VP of Information Security"
     website: "https://vacasa.com"
@@ -49,8 +56,8 @@ work:
       scale machine learning systems accounting for over $1.3Bn in gross revenue.
     highlights:
       - "Built a comprehensive, enterprise-grade security program from the ground up, managing team building, tool acquisition, and policy integrations."
-      - "Established roadmaps for fully containerized infrastructure and highly-available data systems enabling zero-downtime systems maintenance."
-      - "Lead central infrastructure, data platform, reliability, and security teams to build core systems enabling a successful $4.4Bn IPO."
+      - "Established roadmaps for fully containerized infrastructure and highly-available data systems enabling <b>zero-downtime systems maintenance</b>."
+      - "Lead central infrastructure, data platform, reliability, and security teams to build core systems enabling <b>a successful $4.4Bn IPO</b>."
   - company: "Tozny, LLC"
     position: "Head of Engineering"
     website: "https://tozny.com"
@@ -61,9 +68,9 @@ work:
       privacy management tools and hosted SaaS platform for enterprise partners. Helped design and build a scalable, end-to-end 
       encrypted database for managing consumers' personally identifying information (PII).
     highlights:
-      - "Built a comprehensive, enterprise-grade security program from the ground up, managing team building, tool acquisition, and policy integrations."
-      - "Established roadmaps for fully containerized infrastructure and highly-available data systems enabling zero-downtime systems maintenance."
-      - "Lead central infrastructure, data platform, reliability, and security teams to build core systems enabling a successful $4.4Bn IPO."
+      - "Developed an encrypted data storage solution used by clients such as <b>DARPA</b> and the University of Washington."
+      - "Developed secure authentication, identification, and privacy management tools and hosted SaaS platform for enterprise partners."
+      - "Led design of a scalable, <b>FIPS 140‑2 compliant</b>, end‑to‑end encrypted database for managing consumers’ personally identifying information (PII)."
   - company: "10up, Inc"
     position: "Lead Web Engineer"
     website: "https://10up.com"
@@ -74,7 +81,7 @@ work:
       engineering management team. Created prototypes and final implementations of advanced systems integration tools and 
       API libraries.
     highlights:
-      - "Reviewed project code for standards compliance, secure coding practices, and enterprise-level scalability."
+      - "Reviewed project code for standards compliance, secure coding practices, and <b>enterprise-level scalability</b>."
       - "Detected and remediated any server vulnerabilities related to client hosting environments."
       - "Launched multiple, high-profile, enterprise-grade website redesigns, including TechCrunch.com."
   - company: "Hawksoft, Inc"
