@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{title}}</title>
+<meta name="description" content="{{description}}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/core.css">
+</head>
+<body>
+<canvas id="bg"></canvas>
+<canvas id="fx"></canvas>
+<div class="scanlines"></div>
+
+<nav>
+  <a href="/" class="logo">EA<span>M</span></a>
+  <ul>
+    <li><a href="/#about">About</a></li>
+    <li><a href="/#work">Work</a></li>
+    <li><a href="/talks/">Talks</a></li>
+    <li><a href="/#publications">Pub</a></li>
+    <li><a href="/#connect">Connect</a></li>
+  </ul>
+</nav>
+
+{{content}}
+
+<footer>&copy; 2026 Eric A Mann · Transmitted from Tualatin, OR · All frequencies open</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="/js/atmosphere.js"></script>
+</body>
+</html>
