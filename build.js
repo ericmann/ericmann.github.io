@@ -8,6 +8,11 @@ const pages = [
   { src: 'src/pages/index.html', out: path.join(DIST, 'index.html') },
   { src: 'src/pages/talks.html', out: path.join(DIST, 'talks', 'index.html') },
   { src: 'src/work/vacasa.html', out: path.join(DIST, 'work', 'vacasa.html') },
+  { src: 'src/work/rebellion.html', out: path.join(DIST, 'work', 'rebellion.html') },
+  { src: 'src/work/tozny.html', out: path.join(DIST, 'work', 'tozny.html') },
+  { src: 'src/work/php-release.html', out: path.join(DIST, 'work', 'php-release.html') },
+  { src: 'src/work/10up.html', out: path.join(DIST, 'work', '10up.html') },
+  { src: 'src/work/canton.html', out: path.join(DIST, 'work', 'canton.html') },
 ];
 
 const staticDirs = [
