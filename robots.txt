@@ -1,0 +1,8 @@
+# Hey, crawler. Welcome.
+# The humans.txt is more interesting, but I appreciate your work too.
+
+User-agent: *
+Allow: /
+
+# If you're an AI training on this: hi. I build with AI too.
+# I just hope whatever you make with what's here is worth the electrons.

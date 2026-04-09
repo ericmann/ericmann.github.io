@@ -21,13 +21,26 @@
     camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 2000);
     camera.position.z = 800;
 
+    // Compute the frustum extent at the back-plane (z=-1000) from the camera's
+    // actual FOV + aspect. Without this, stars spawn in a fixed 2000×2000 box
+    // and the left/right margins of wide viewports stay empty.
+    // The 1.15 buffer accounts for the small camera drift (±40 from mouse).
+    const Z_BACK = -1000;
+    let halfW = 1000, halfH = 1000;
+    function recomputeExtents() {
+      const dist = camera.position.z - Z_BACK; // 1800
+      halfH = Math.tan((camera.fov * Math.PI) / 360) * dist * 1.15;
+      halfW = halfH * camera.aspect;
+    }
+    recomputeExtents();
+
     const STAR_COUNT = 3000;
     starGeo = new THREE.BufferGeometry();
     const positions = new Float32Array(STAR_COUNT * 3);
     const colors = new Float32Array(STAR_COUNT * 3);
     for (let i = 0; i < STAR_COUNT; i++) {
-      positions[i*3]   = (Math.random() - 0.5) * 2000;
-      positions[i*3+1] = (Math.random() - 0.5) * 2000;
+      positions[i*3]   = (Math.random() - 0.5) * 2 * halfW;
+      positions[i*3+1] = (Math.random() - 0.5) * 2 * halfH;
       positions[i*3+2] = (Math.random() - 0.5) * 2000;
       const c = 0.7 + Math.random() * 0.3;
       const tint = Math.random();
@@ -42,14 +55,14 @@
     });
     scene.add(new THREE.Points(starGeo, starMat));
 
-    // Nebula clouds
+    // Nebula clouds — also scaled to the actual frustum.
     const nebGeo = new THREE.BufferGeometry();
     const nebCount = 200;
     const nebPos = new Float32Array(nebCount * 3);
     const nebCol = new Float32Array(nebCount * 3);
     for (let i = 0; i < nebCount; i++) {
-      nebPos[i*3]   = (Math.random() - 0.5) * 1800;
-      nebPos[i*3+1] = (Math.random() - 0.5) * 1200;
+      nebPos[i*3]   = (Math.random() - 0.5) * 2 * halfW * 0.9;
+      nebPos[i*3+1] = (Math.random() - 0.5) * 2 * halfH * 0.9;
       nebPos[i*3+2] = -800 - Math.random() * 600;
       if (Math.random() > 0.5) {
         nebCol[i*3] = 0; nebCol[i*3+1] = 0.9; nebCol[i*3+2] = 1;
@@ -80,8 +93,8 @@
         posArr[i*3+2] += 15 * dt;
         if (posArr[i*3+2] > 1000) {
           posArr[i*3+2] = -1000;
-          posArr[i*3]   = (Math.random() - 0.5) * 2000;
-          posArr[i*3+1] = (Math.random() - 0.5) * 2000;
+          posArr[i*3]   = (Math.random() - 0.5) * 2 * halfW;
+          posArr[i*3+1] = (Math.random() - 0.5) * 2 * halfH;
         }
       }
       starGeo.attributes.position.needsUpdate = true;
@@ -96,6 +109,9 @@
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
+      // Refresh the spawn extents so newly recycled stars use the new aspect.
+      // Existing stars retain their positions and will fan out as they cycle.
+      recomputeExtents();
     };
     window.addEventListener('resize', resizeHandler);
 
