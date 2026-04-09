@@ -451,6 +451,23 @@ footer {
   margin: 2.5rem 0 0.75rem;
 }
 .page-content h2:first-of-type { margin-top: 0; }
+.page-content a,
+.panel p a,
+.panel li a {
+  color: var(--cyan);
+  text-decoration: none;
+  border-bottom: 1px solid var(--cyan-dim);
+  transition: border-color 0.3s, text-shadow 0.3s;
+}
+.page-content a:hover,
+.panel p a:hover,
+.panel li a:hover {
+  border-color: var(--cyan);
+  text-shadow: 0 0 8px var(--cyan-dim);
+}
+.page-content a.back-link {
+  border-bottom: none;
+}
 .page-content p {
   font-size: 1.05rem;
   line-height: 1.8;
