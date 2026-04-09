@@ -124,7 +124,7 @@
         'color: #ff00aa; font-size: 14px;'
       );
       console.log(
-        '%cWant to build something together? → linkedin.com/in/shortericmann',
+        '%cWant to build something together? → linkedin.com/in/ericallenmann',
         'color: #c8d8e8; font-size: 12px;'
       );
       console.log(

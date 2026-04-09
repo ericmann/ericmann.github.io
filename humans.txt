@@ -1,8 +1,9 @@
 /* HUMAN */
-Name:     Eric A Mann
-Location: Tualatin, Oregon
-Contact:  https://linkedin.com/in/shortericmann
-Twitter:  @shortericmann
+Name:       Eric A Mann
+Location:   Tualatin, Oregon
+Contact:    https://linkedin.com/in/ericallenmann
+X/Twitter:  @ericmann
+Mastodon:   https://tekton.network/@ericmann
 
 /* SITE */
 Built with: HTML, CSS, Three.js, Canvas

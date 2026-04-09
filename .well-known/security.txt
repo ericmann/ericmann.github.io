@@ -1,4 +1,4 @@
-Contact: https://linkedin.com/in/shortericmann
+Contact: https://linkedin.com/in/ericallenmann
 Preferred-Languages: en
 Canonical: https://eamann.com/.well-known/security.txt
 Expires: 2027-12-31T23:59:59.000Z
