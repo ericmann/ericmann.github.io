@@ -16,8 +16,9 @@ const pages = [
 ];
 
 const staticDirs = [
-  { src: 'src/css', out: path.join(DIST, 'css') },
-  { src: 'src/js',  out: path.join(DIST, 'js') },
+  { src: 'src/css',   out: path.join(DIST, 'css') },
+  { src: 'src/js',    out: path.join(DIST, 'js') },
+  { src: 'src/fonts', out: path.join(DIST, 'fonts') },
 ];
 
 const passthrough = [
