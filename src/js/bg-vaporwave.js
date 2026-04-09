@@ -165,7 +165,7 @@
     document.addEventListener('mousemove', mouseHandler);
 
     let last = performance.now();
-    const SPEED = 220; // outrun cruising speed
+    const SPEED = 110; // outrun cruising speed
 
     function frame(now) {
       raf = requestAnimationFrame(frame);

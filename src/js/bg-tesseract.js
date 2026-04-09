@@ -124,9 +124,9 @@
       // through hyperspace. Base rate keeps gentle ambient motion when idle.
       const mouseBoost = 1 + Math.abs(mouseX) * 2 + Math.abs(mouseY) * 2;
       // Outer cube: rotates in xw and yw planes — the signature 4D motion.
-      const a = dt * 0.35 * mouseBoost * (mouseX >= 0 ? 1 : -1);
-      const b = dt * 0.21 * mouseBoost * (mouseY >= 0 ? 1 : -1);
-      const c = dt * 0.08;
+      const a = dt * 0.175 * mouseBoost * (mouseX >= 0 ? 1 : -1);
+      const b = dt * 0.105 * mouseBoost * (mouseY >= 0 ? 1 : -1);
+      const c = dt * 0.04;
       const ca = Math.cos(a), sa = Math.sin(a);
       const cb = Math.cos(b), sb = Math.sin(b);
       const cc = Math.cos(c), sc = Math.sin(c);
@@ -148,11 +148,11 @@
       updateLineGeometry(innerLines.geometry, innerVerts4D, innerEdges, 4);
 
       // Slow ambient drift of the whole scene.
-      const t = now * 0.0003;
+      const t = now * 0.00015;
       outerLines.rotation.z = Math.sin(t) * 0.15;
       innerLines.rotation.z = -Math.sin(t * 1.3) * 0.2;
       // Subtle scale pulse — like the cube is "breathing" through 4D.
-      const pulse = 1 + Math.sin(now * 0.0008) * 0.04;
+      const pulse = 1 + Math.sin(now * 0.0004) * 0.04;
       outerLines.scale.setScalar(pulse);
 
       // Cursor parallax: ease the camera toward the mouse offset.
