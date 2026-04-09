@@ -1,63 +1,121 @@
 // ═══════════════════════════════════════
 // ATMOSPHERE LOADER
-// Picks a background visualization, persists the choice for 24h,
+// Picks a background visualization, persists the choice in a cookie whose
+// expiry is inversely proportional to the rarity of the chosen variant,
 // and listens for the Konami code as a forced override.
 //
-// Each visualization registers itself on window.Atmospheres[name]
-// with { init(), destroy() }. Modules are loaded as separate scripts.
+// Each visualization registers itself on window.Atmospheres[name] with
+// { init(), destroy() }. Modules are loaded as separate scripts.
+//
+// Accessibility: visitors with prefers-reduced-motion always get the
+// starfield (the gentlest variant). The cookie is force-rewritten to match
+// on every load so the preference wins over any prior stored value.
+//
+// Mobile: on touch-primary devices (hover: none and pointer: coarse),
+// non-mobile-friendly variants have their weight divided by 10 for the
+// weighted pick. Their expiry is unchanged — a mobile visitor who DOES
+// land on a heavy variant keeps it as long as anyone else would.
 // ═══════════════════════════════════════
 (function() {
   const COOKIE_NAME = 'eam_atmo';
-  const COOKIE_HOURS = 24;
 
-  // Order matters: index+1 maps to the Konami digit (1..6).
+  // Canonical variant list. Order matters: index+1 is the Konami digit.
+  //   weight          — used for the weighted random pick AND to compute
+  //                     the cookie expiry via expiryHoursFor().
+  //   mobileFriendly  — false means the variant is mouse-dependent or too
+  //                     CPU-heavy for low-power devices, and its weight is
+  //                     divided by 10 on touch-primary devices.
+  //   hidden          — reserved for future secret variants. Hidden ones
+  //                     are excluded from the random pick but still
+  //                     reachable via the Konami Enter cycle and
+  //                     Atmosphere.set(). None currently defined.
   const VARIANTS = [
-    { name: 'starfield',  weight: 90   },
-    { name: 'vaporwave',  weight: 5    },
-    { name: 'mobius',     weight: 3    },
-    { name: 'tesseract',  weight: 1.5  },
-    { name: 'abyss',      weight: 0.25 },
-    { name: 'dunes',      weight: 0.25 },
+    { name: 'starfield', weight: 80, mobileFriendly: true  },
+    { name: 'vaporwave', weight: 4,  mobileFriendly: true  },
+    { name: 'mobius',    weight: 4,  mobileFriendly: true  },
+    { name: 'tesseract', weight: 4,  mobileFriendly: true  },
+    { name: 'abyss',     weight: 4,  mobileFriendly: false },
+    { name: 'dunes',     weight: 4,  mobileFriendly: false },
   ];
 
-  function readCookie(name) {
-    const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
-    return match ? decodeURIComponent(match[1]) : null;
+  // ── Environment checks ──
+  function prefersReducedMotion() {
+    try { return matchMedia('(prefers-reduced-motion: reduce)').matches; }
+    catch (e) { return false; }
+  }
+  function isTouchPrimary() {
+    try { return matchMedia('(hover: none) and (pointer: coarse)').matches; }
+    catch (e) { return false; }
   }
 
-  function writeCookie(name, value, hours) {
+  // Touch devices get the non-mobile-friendly variants at 1/10 weight.
+  function effectiveWeight(v) {
+    if (isTouchPrimary() && !v.mobileFriendly) return v.weight / 10;
+    return v.weight;
+  }
+
+  // Linear interpolation between the two anchor points the user specified:
+  //   weight 80 → 24h  (starfield)
+  //   weight 20 → 168h (7 days)
+  // Extrapolates smoothly for other weights, clamped to [24h, 30d].
+  // Rare variants stick longer so curious visitors can appreciate them.
+  function expiryHoursFor(weight) {
+    const hours = 216 - 2.4 * weight;
+    return Math.max(24, Math.min(720, Math.round(hours)));
+  }
+
+  // ── Cookie helpers ──
+  function readCookie() {
+    const m = document.cookie.match(new RegExp('(?:^|; )' + COOKIE_NAME + '=([^;]*)'));
+    return m ? decodeURIComponent(m[1]) : null;
+  }
+  function writeCookie(variantName) {
+    const v = VARIANTS.find(x => x.name === variantName);
+    // Expiry uses the *canonical* weight; mobile adjustments don't affect it.
+    const hours = v ? expiryHoursFor(v.weight) : 24;
     const exp = new Date(Date.now() + hours * 3600 * 1000).toUTCString();
-    document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + exp + '; path=/; SameSite=Lax';
+    document.cookie = COOKIE_NAME + '=' + encodeURIComponent(variantName) +
+      '; expires=' + exp + '; path=/; SameSite=Lax';
   }
-
-  function weightedPick() {
-    const total = VARIANTS.reduce((a, v) => a + v.weight, 0);
-    let r = Math.random() * total;
-    for (const v of VARIANTS) {
-      r -= v.weight;
-      if (r <= 0) return v.name;
-    }
-    return VARIANTS[0].name;
+  function clearCookie() {
+    document.cookie = COOKIE_NAME + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
   }
-
   function isValidVariant(name) {
     return VARIANTS.some(v => v.name === name);
   }
 
+  // ── Random pick ──
+  function weightedPick() {
+    const eligible = VARIANTS.filter(v => !v.hidden);
+    const total = eligible.reduce((a, v) => a + effectiveWeight(v), 0);
+    let r = Math.random() * total;
+    for (const v of eligible) {
+      r -= effectiveWeight(v);
+      if (r <= 0) return v.name;
+    }
+    return eligible[0].name;
+  }
+
   function getOrPickVariant() {
-    const stored = readCookie(COOKIE_NAME);
+    // Accessibility: reduced-motion visitors always get the starfield.
+    // We force-rewrite the cookie so a prior stored choice can't bypass it.
+    if (prefersReducedMotion()) {
+      writeCookie('starfield');
+      return 'starfield';
+    }
+    const stored = readCookie();
     if (stored && isValidVariant(stored)) return stored;
     const picked = weightedPick();
-    writeCookie(COOKIE_NAME, picked, COOKIE_HOURS);
+    writeCookie(picked);
     return picked;
   }
 
   // ── Lifecycle ──
   let active = null; // { name, module }
 
-  // Replace a canvas with a clone of itself. A canvas can only ever own one
-  // rendering context (2d OR webgl), and once lost it can't be re-acquired
-  // cleanly — so on swap we simply hand the next module a fresh DOM node.
+  // A canvas can only ever own one rendering context (2d OR webgl), and
+  // once lost it can't be re-acquired cleanly — so on swap we simply hand
+  // the next module a fresh DOM node.
   function freshenCanvas(id) {
     const old = document.getElementById(id);
     if (!old || !old.parentNode) return;
@@ -72,18 +130,13 @@
       console.warn('[atmosphere] module not registered:', name);
       return false;
     }
-
     if (active && active.module) {
       if (typeof active.module.destroy === 'function') {
         try { active.module.destroy(); } catch (e) { console.warn('[atmosphere] destroy error', e); }
       }
-      // Only freshen canvases when swapping — on first activation the
-      // canvases are already pristine and pre-acquiring a context here
-      // would leave Three.js with a half-initialized one.
       freshenCanvas('bg');
       freshenCanvas('fx');
     }
-
     try {
       mod.init();
       active = { name, module: mod };
@@ -96,16 +149,39 @@
     }
   }
 
+  // Advance to the next variant in canonical order. Includes hidden ones
+  // so the Enter-cycle can reach future secret atmospheres.
+  function cycleToNext() {
+    const current = active && active.name;
+    const idx = VARIANTS.findIndex(v => v.name === current);
+    const next = VARIANTS[(idx + 1) % VARIANTS.length];
+    writeCookie(next.name);
+    activateWhenReady(next.name);
+  }
+
+  // Wait until the chosen module has registered before activating it.
+  function activateWhenReady(name, attempt) {
+    attempt = attempt || 0;
+    if (window.Atmospheres && window.Atmospheres[name]) {
+      activate(name);
+      return;
+    }
+    if (attempt > 50) {
+      console.warn('[atmosphere] giving up waiting for', name);
+      const fallback = Object.keys(window.Atmospheres || {})[0];
+      if (fallback) activate(fallback);
+      return;
+    }
+    setTimeout(() => activateWhenReady(name, attempt + 1), 20);
+  }
+
   // ── Console banner & rarity reveal ──
   let bannerPrinted = false;
-  const RARITY_LABELS = {
-    starfield: 'starfield · default · 90%',
-    vaporwave: 'vaporwave · uncommon · 5%',
-    mobius:    'mobius · rare · 3%',
-    tesseract: 'tesseract · very rare · 1.5%',
-    abyss:     'abyss · super rare · 0.25%',
-    dunes:     'dunes · super rare · 0.25%',
-  };
+  function rarityLabel(name) {
+    const v = VARIANTS.find(x => x.name === name);
+    if (!v) return name;
+    return name + ' · ' + v.weight + '%';
+  }
   function logBanner(variant) {
     if (!bannerPrinted) {
       bannerPrinted = true;
@@ -128,35 +204,20 @@
         'color: #c8d8e8; font-size: 12px;'
       );
       console.log(
-        '%cThe starfield has siblings. Try ↑↑↓↓←→←→ B A 1-6, or call Atmosphere.list().',
+        '%cThe starfield has siblings. Try ↑↑↓↓←→←→ B A Enter to cycle, or ↑↑↓↓←→←→ B A 1-' +
+          VARIANTS.length + ' to jump. Atmosphere.list() for names.',
         'color: #8899aa; font-size: 11px; font-style: italic;'
       );
     }
-    const label = RARITY_LABELS[variant] || variant;
     console.log(
-      '%c// atmosphere: ' + label,
+      '%c// atmosphere: ' + rarityLabel(variant),
       'color: #8899aa; font-size: 11px; font-style: italic;'
     );
   }
 
-  // Wait until the chosen module has registered before activating it.
-  function activateWhenReady(name, attempt) {
-    attempt = attempt || 0;
-    if (window.Atmospheres && window.Atmospheres[name]) {
-      activate(name);
-      return;
-    }
-    if (attempt > 50) {
-      console.warn('[atmosphere] giving up waiting for', name);
-      // Fall back to whatever is registered.
-      const fallback = Object.keys(window.Atmospheres || {})[0];
-      if (fallback) activate(fallback);
-      return;
-    }
-    setTimeout(() => activateWhenReady(name, attempt + 1), 20);
-  }
-
-  // ── Konami code: ↑↑↓↓←→←→ B A [1-5] ──
+  // ── Konami code ──
+  //   ↑↑↓↓←→←→ B A [1-9]    → jump directly to variant N
+  //   ↑↑↓↓←→←→ B A Enter    → cycle to the next variant
   const KONAMI_PREFIX = [
     'ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown',
     'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight',
@@ -173,28 +234,34 @@
     for (let i = 0; i < KONAMI_PREFIX.length; i++) {
       if (buffer[i] !== KONAMI_PREFIX[i]) return;
     }
-    const digit = buffer[KONAMI_PREFIX.length];
-    const idx = parseInt(digit, 10) - 1;
+    const last = buffer[KONAMI_PREFIX.length];
+    buffer = [];
+    if (last === 'Enter') {
+      cycleToNext();
+      return;
+    }
+    const idx = parseInt(last, 10) - 1;
     if (idx >= 0 && idx < VARIANTS.length) {
       const target = VARIANTS[idx].name;
-      writeCookie(COOKIE_NAME, target, COOKIE_HOURS);
+      writeCookie(target);
       activateWhenReady(target);
-      buffer = [];
     }
   }
   document.addEventListener('keydown', onKey);
 
-  // Expose a tiny debug API.
+  // Debug API.
   window.Atmosphere = {
-    list: () => VARIANTS.map(v => v.name),
+    list: () => VARIANTS.filter(v => !v.hidden).map(v => v.name),
+    listAll: () => VARIANTS.map(v => v.name),
     current: () => active && active.name,
     set: (name) => {
       if (!isValidVariant(name)) return false;
-      writeCookie(COOKIE_NAME, name, COOKIE_HOURS);
+      writeCookie(name);
       activateWhenReady(name);
       return true;
     },
-    clear: () => { document.cookie = COOKIE_NAME + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/'; },
+    next: () => cycleToNext(),
+    clear: clearCookie,
   };
 
   // Boot.
