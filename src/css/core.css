@@ -213,11 +213,10 @@ section.auto-height { min-height: auto; }
   margin-bottom: 1rem;
 }
 .about-grid .panel p:last-child { margin-bottom: 0; }
-.stat-row {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;
+.stat-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;
   margin-top: 1.5rem;
 }
-.stat-row + .stat-row { margin-top: 1rem; }
 .stat {
   text-align: center;
   padding: 1rem;
@@ -623,7 +622,7 @@ footer {
   nav ul { gap: 1rem; }
   nav a { font-size: 0.6rem; letter-spacing: 1px; }
   .about-grid { grid-template-columns: 1fr; }
-  .stat-row { grid-template-columns: 1fr 1fr; }
+  .stat-grid { grid-template-columns: 1fr 1fr; }
   section { padding: 5rem 1.25rem; }
   .panel { padding: 1.5rem; }
   .page-content { padding: 6rem 1.25rem 3rem; }
