@@ -1,64 +1,66 @@
-# resume-template
+# eamann.com
 
-*A simple Jekyll + GitHub Pages powered resume template.*
+Personal portfolio site for Eric A Mann. Static HTML built with a zero-dependency Node.js templating script and deployed to GitHub Pages.
 
-![img](images/screenshot.png)
+## Project Structure
 
-## Docs
+```
+src/
+  layouts/base.html    — shared HTML shell (nav, head, footer, scripts)
+  pages/index.html     — homepage content
+  pages/talks.html     — conference talks
+  work/*.html          — case study pages
+  css/core.css         — global styles
+  js/atmosphere.js     — background canvas effects
+images/                — avatars, favicons (copied to dist as-is)
+.well-known/           — webfinger (copied to dist as-is)
+build.js               — build script
+watch.js               — dev server with file watching
+Makefile               — convenience targets
+```
 
-### Running locally
+## How It Works
 
-To test locally, run the following in your terminal:
+`build.js` reads `src/layouts/base.html` as a layout template with `{{title}}`, `{{description}}`, and `{{content}}` slots. Each page file provides its title and description via HTML comments at the top:
 
-1. Clone repo locally
-1. `bundle install`
-2. `bundle exec jekyll serve`
-3. Open your browser to `localhost:4000`
+```html
+<!-- title: Page Title -->
+<!-- description: Meta description text. -->
 
-### Customizing
+<section>...page content...</section>
+```
 
-First you'll want to fork the repo to your own account. Then clone it locally and customize, or use the GitHub web editor to customize.
+The build script strips those comments, injects the content into the layout, and writes the result to `dist/`. Static assets (`css/`, `js/`, `images/`, `.well-known/`, `CNAME`) are copied alongside.
 
-#### Options/configuration
+No dependencies. No `node_modules`. Just `node build.js`.
 
-Most of the basic customization will take place in the `/_config.yml` file. Here is a list of customizations available via `/_config.yml`:
+## Local Development
 
-[...write these out...]
+Requires Node.js and Python 3 (for the dev server).
 
-#### Editing content
+```bash
+make build    # build once → dist/
+make serve    # build + serve at localhost:8000 + watch for changes
+make clean    # delete dist/
+```
 
-Most of the content configuration will take place in the `/_layouts/resume.html` file. Simply edit the markup there accordingly
+`make serve` starts a local HTTP server on port 8000 and watches `src/` for changes, automatically rebuilding on save.
 
-### Publishing to GitHub Pages for free
+## Deployment
 
-[GitHub Pages](https://pages.github.com/) will host this for free with your GitHub account. Just make sure you're using a `gh-pages` branch, and the site will automatically be available at `yourusername.github.io/resume-template` (you can rename the repo to resume for your own use if you want it to be available at `yourusername.github.io/resume`). You can also add a CNAME if you want it to be available at a custom domain...
+The site deploys to GitHub Pages via a GitHub Actions workflow (`.github/workflows/deploy.yml`). Every push to `main` triggers a build-and-deploy cycle. Manual deploys can be triggered from the Actions tab.
 
-### Configuring with your own domain name
+**One-time setup:** In the repo's **Settings → Pages**, set the source to **GitHub Actions**.
 
-To setup your GH Pages site with a custom domain, [follow the instructions](https://help.github.com/articles/setting-up-a-custom-domain-with-github-pages/) on the GitHub Help site for that topic.
+The `CNAME` file is included in the build output so the custom domain (`eamann.com`) is configured automatically.
 
-### Themes
+## Adding a Page
 
-Right now resume-template only has one theme. More are coming :soon: though. :heart:
-
-## Roadmap
-
-- [ ] Add print button/styles
-- [ ] Add PDF button/functionality
-- [ ] Add more theme styles
-- [ ] Add a "fork me on GitHub" thing
-- [ ] Finish docs
-- [ ] Cleanup CSS
-
-## Contributing
-
-If you spot a bug, or want to improve the code, or even make the dummy content better, you can do the following:
-
-1. [Open an issue](https://github.com/jglovier/resume-template/issues/new) describing the bug or feature idea
-2. Fork the project, make changes, and submit a pull request
+1. Create an HTML file under `src/pages/` or `src/work/` with title/description comments at the top.
+2. Add an entry to the `pages` array in `build.js`.
+3. Link to it from wherever makes sense (homepage card, nav, etc.).
+4. Run `make build` to verify.
 
 ## License
 
-The code and styles are licensed under the MIT license. [See project license.](LICENSE) Obviously you should not use the content of this demo repo in your own resume. :wink:
-
-Disclaimer: Use of Homer J. Simpson image and name used under [Fair Use](https://en.wikipedia.org/wiki/Fair_use) for educational purposes. Project license does not apply to use of this material.
+MIT — see [LICENSE](LICENSE).
