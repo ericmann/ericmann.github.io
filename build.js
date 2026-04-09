@@ -7,9 +7,9 @@ const layout = fs.readFileSync('src/layouts/base.html', 'utf8');
 const pages = [
   { src: 'src/pages/index.html', out: path.join(DIST, 'index.html') },
   { src: 'src/pages/talks.html', out: path.join(DIST, 'talks', 'index.html') },
-  { src: 'src/work/vacasa.html', out: path.join(DIST, 'work', 'vacasa.html') },
-  { src: 'src/work/rebellion.html', out: path.join(DIST, 'work', 'rebellion.html') },
-  { src: 'src/work/tozny.html', out: path.join(DIST, 'work', 'tozny.html') },
+  { src: 'src/work/ipo-security.html', out: path.join(DIST, 'work', 'ipo-security.html') },
+  { src: 'src/work/il5-auth.html', out: path.join(DIST, 'work', 'il5-auth.html') },
+  { src: 'src/work/e2ee-platform.html', out: path.join(DIST, 'work', 'e2ee-platform.html') },
   { src: 'src/work/php-release.html', out: path.join(DIST, 'work', 'php-release.html') },
   { src: 'src/work/10up.html', out: path.join(DIST, 'work', '10up.html') },
   { src: 'src/work/canton.html', out: path.join(DIST, 'work', 'canton.html') },
