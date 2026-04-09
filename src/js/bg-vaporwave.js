@@ -1,13 +1,16 @@
 // ═══════════════════════════════════════
-// VAPORWAVE — super rare (0.5%) — the easter egg
-// Endless magenta grid scrolling toward a neon sun on the horizon,
-// with wireframe mountains and floating chevrons. The fun one.
+// VAPORWAVE — uncommon (5%)
+// Endless cyan grid scrolling toward a neon sun on the horizon,
+// with wireframe mountains and floating chevrons. Tuned to lean on
+// the site's cyan/magenta/amber palette so it feels native.
 // ═══════════════════════════════════════
 (function() {
   window.Atmospheres = window.Atmospheres || {};
 
+  // Match the site's :root palette exactly.
+  const CYAN    = 0x00f0ff;
   const MAGENTA = 0xff00aa;
-  const CYAN = 0x00f0ff;
+  const AMBER   = 0xffaa00;
 
   let renderer, scene, camera, raf = 0, resizeHandler, mouseHandler;
   let gridLines, gridLines2, mountains, mountains2;
@@ -16,17 +19,18 @@
   let mouseX = 0, mouseY = 0;
   let yaw = 0;
 
-  // Build a CanvasTexture for the sun: vertical gradient (yellow → magenta)
-  // with horizontal bars cut out for that signature synthwave look.
+  // Build a CanvasTexture for the sun: vertical gradient amber → magenta
+  // with horizontal bars cut out for the signature synthwave look.
+  // Uses the site's exact amber and magenta tones.
   function makeSunTexture() {
     const c = document.createElement('canvas');
     c.width = c.height = 256;
     const ctx = c.getContext('2d');
     const grad = ctx.createLinearGradient(0, 0, 0, 256);
-    grad.addColorStop(0.0, '#fff27a');
-    grad.addColorStop(0.4, '#ff9c4a');
-    grad.addColorStop(0.75, '#ff2e88');
-    grad.addColorStop(1.0, '#a020a0');
+    grad.addColorStop(0.0, '#ffd96b'); // soft warm top
+    grad.addColorStop(0.35, '#ffaa00'); // site amber
+    grad.addColorStop(0.75, '#ff00aa'); // site magenta
+    grad.addColorStop(1.0, '#3a0050');
     ctx.fillStyle = grad;
     ctx.beginPath();
     ctx.arc(128, 128, 120, 0, Math.PI * 2);
@@ -104,21 +108,22 @@
     renderer.setClearColor(0x000000, 0);
 
     scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0x12001a, 800, 2400);
+    // Fog matches the site bg (#050510) so the horizon dissolves into the page.
+    scene.fog = new THREE.Fog(0x050510, 800, 2400);
 
     camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 5000);
     camera.position.set(0, 80, 0);
     camera.lookAt(0, 80, -100);
 
-    // Two grids stacked: bright magenta foreground + cyan offset for the parallax.
-    gridLines  = buildGrid(MAGENTA, 0.85, -20, 3200, 100);
-    gridLines2 = buildGrid(CYAN,    0.30, -22, 3200, 200);
+    // Cyan-dominant grid with magenta accent — primary color of the site leads.
+    gridLines  = buildGrid(CYAN,    0.80, -20, 3200, 100);
+    gridLines2 = buildGrid(MAGENTA, 0.25, -22, 3200, 200);
     scene.add(gridLines);
     scene.add(gridLines2);
 
-    // Distant mountains in two layers.
-    mountains  = buildMountains(MAGENTA, -2200, 0.6, 280);
-    mountains2 = buildMountains(CYAN,    -2400, 0.35, 200);
+    // Distant mountains in two layers, cyan dominant.
+    mountains  = buildMountains(CYAN,  -2200, 0.7,  280);
+    mountains2 = buildMountains(AMBER, -2400, 0.35, 200);
     scene.add(mountains);
     scene.add(mountains2);
 

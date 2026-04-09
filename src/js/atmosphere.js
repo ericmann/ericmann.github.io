@@ -10,13 +10,14 @@
   const COOKIE_NAME = 'eam_atmo';
   const COOKIE_HOURS = 24;
 
-  // Order matters: index+1 maps to the Konami digit (1..5).
+  // Order matters: index+1 maps to the Konami digit (1..6).
   const VARIANTS = [
-    { name: 'starfield',  weight: 90  },
-    { name: 'battlezone', weight: 5   },
-    { name: 'mobius',     weight: 3   },
-    { name: 'tesseract',  weight: 1.5 },
-    { name: 'vaporwave',  weight: 0.5 },
+    { name: 'starfield',  weight: 90   },
+    { name: 'vaporwave',  weight: 5    },
+    { name: 'mobius',     weight: 3    },
+    { name: 'tesseract',  weight: 1.5  },
+    { name: 'abyss',      weight: 0.25 },
+    { name: 'dunes',      weight: 0.25 },
   ];
 
   function readCookie(name) {
