@@ -1,0 +1,15 @@
+/* HUMAN */
+Name:     Eric A Mann
+Location: Tualatin, Oregon
+Contact:  https://linkedin.com/in/shortericmann
+Twitter:  @shortericmann
+
+/* SITE */
+Built with: HTML, CSS, Three.js, Canvas
+Fonts:      Orbitron, Rajdhani, Share Tech Mono
+Source:     https://github.com/ericmann/ericmann.github.io
+Updated:    2026-04-08
+
+/* COLOPHON */
+The starfield has siblings. Most visitors will never meet them.
+If you found this file, you're the kind of person I want to work with.

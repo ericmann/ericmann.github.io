@@ -88,11 +88,55 @@
       mod.init();
       active = { name, module: mod };
       document.documentElement.setAttribute('data-atmosphere', name);
+      logBanner(name);
       return true;
     } catch (e) {
       console.error('[atmosphere] init error for', name, e);
       return false;
     }
+  }
+
+  // ── Console banner & rarity reveal ──
+  let bannerPrinted = false;
+  const RARITY_LABELS = {
+    starfield: 'starfield · default · 90%',
+    vaporwave: 'vaporwave · uncommon · 5%',
+    mobius:    'mobius · rare · 3%',
+    tesseract: 'tesseract · very rare · 1.5%',
+    abyss:     'abyss · super rare · 0.25%',
+    dunes:     'dunes · super rare · 0.25%',
+  };
+  function logBanner(variant) {
+    if (!bannerPrinted) {
+      bannerPrinted = true;
+      console.log(
+        '%c\n' +
+        ' ███████╗ █████╗ ███╗   ███╗\n' +
+        ' ██╔════╝██╔══██╗████╗ ████║\n' +
+        ' █████╗  ███████║██╔████╔██║\n' +
+        ' ██╔══╝  ██╔══██║██║╚██╔╝██║\n' +
+        ' ███████╗██║  ██║██║ ╚═╝ ██║\n' +
+        ' ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝\n',
+        'color: #00f0ff; font-family: monospace; font-weight: bold; line-height: 1;'
+      );
+      console.log(
+        '%cYou opened the console. I like you already.',
+        'color: #ff00aa; font-size: 14px;'
+      );
+      console.log(
+        '%cWant to build something together? → linkedin.com/in/shortericmann',
+        'color: #c8d8e8; font-size: 12px;'
+      );
+      console.log(
+        '%cThe starfield has siblings. Try ↑↑↓↓←→←→ B A 1-6, or call Atmosphere.list().',
+        'color: #8899aa; font-size: 11px; font-style: italic;'
+      );
+    }
+    const label = RARITY_LABELS[variant] || variant;
+    console.log(
+      '%c// atmosphere: ' + label,
+      'color: #8899aa; font-size: 11px; font-style: italic;'
+    );
   }
 
   // Wait until the chosen module has registered before activating it.

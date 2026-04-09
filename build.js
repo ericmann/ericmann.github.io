@@ -26,7 +26,9 @@ const passthrough = [
 ];
 
 const passthroughFiles = [
-  { src: 'CNAME',       out: path.join(DIST, 'CNAME') },
+  { src: 'CNAME',      out: path.join(DIST, 'CNAME') },
+  { src: 'humans.txt', out: path.join(DIST, 'humans.txt') },
+  { src: 'robots.txt', out: path.join(DIST, 'robots.txt') },
 ];
 
 function copyDir(src, dest) {
