@@ -3,8 +3,8 @@
 build:
 	node build.js
 
-serve: build
-	cd dist && python3 -m http.server 8000
+serve:
+	node watch.js
 
 clean:
 	rm -rf dist

@@ -224,6 +224,17 @@ section.auto-height { min-height: auto; }
   border: 1px solid var(--panel-border);
   border-radius: 2px;
 }
+a.stat {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+a.stat:hover {
+  border-color: var(--cyan);
+  box-shadow: 0 0 20px var(--cyan-dim);
+  cursor: pointer;
+}
 .stat-val {
   font-family: var(--font-display);
   font-size: 1.8rem;
