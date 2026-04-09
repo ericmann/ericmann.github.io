@@ -69,15 +69,6 @@ The `CNAME` file is included in the build output so the custom domain (`eamann.c
 
 The site has six background variants. Each runs its own WebGL or 2D canvas animation and registers itself on `window.Atmospheres[name]` with `{ init(), destroy() }` hooks. `src/js/atmosphere.js` is the loader that picks one, manages its lifecycle, and listens for overrides.
 
-Current variants:
-
-- **starfield** (80%) — Three.js hyperspace stars + nebulae + shooting stars
-- **vaporwave** (4%) — synthwave grid + neon sun + wireframe mountains
-- **mobius** (4%) — hand-rolled twisted parametric tube, slowly rotating
-- **tesseract** (4%) — 4D hypercube projected into 3D, rotating through xw/yw planes
-- **abyss** (4%) — additive particle splash trail that follows the cursor
-- **dunes** (4%) — Mt Hood silhouette as ~1800 spring-anchored particles; cursor scatters them, spring pulls them back
-
 The chosen variant is persisted in an `eam_atmo` cookie. Expiry scales inversely with weight via linear interpolation through two anchor points (weight 80 → 24h, weight 20 → 168h), clamped to [24h, 30d]. Starfield expires in 24h; the 4% variants stick for ~8.6 days.
 
 **Overrides:**
@@ -89,17 +80,6 @@ The chosen variant is persisted in an `eam_atmo` cookie. Expiry scales inversely
 **Accessibility:** visitors with `prefers-reduced-motion: reduce` are locked to the starfield regardless of stored cookie. The loader force-rewrites the cookie to match so the preference wins on every load.
 
 **Mobile:** on touch-primary devices (`hover: none` and `pointer: coarse`), variants flagged `mobileFriendly: false` have their weight divided by 10 for the weighted pick. `abyss` and `dunes` are flagged that way — they're cursor-dependent and CPU-heavy, so they still *can* roll but are 10× rarer.
-
-## Easter Eggs
-
-Small things buried around the site for people who go looking:
-
-- `/humans.txt` — humanstxt.org contact block
-- `/.well-known/security.txt` — RFC 9116 security contact
-- `/llms.txt` — llmstxt.org discovery file with a factual pitch for AI crawlers
-- HTML comment between `<!DOCTYPE html>` and `<html>` — visible when you View Source
-- Console banner with ASCII logo + rarity reveal when DevTools opens
-- `X-Atmosphere` HTTP response header on every request, set by a Cloudflare Worker reading the `eam_atmo` cookie — mirrors the visitor's current variant with its rarity label
 
 ## Adding a Page
 
