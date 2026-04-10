@@ -189,7 +189,9 @@
   function rarityLabel(name) {
     const v = VARIANTS.find(x => x.name === name);
     if (!v) return name;
-    return name + ' · w' + v.weight;
+    const total = VARIANTS.reduce((a, x) => a + x.weight, 0);
+    var pct = ((v.weight / total) * 100).toFixed(1);
+    return name + ' · ' + pct + '%';
   }
   function logBanner(variant) {
     if (!bannerPrinted) {
