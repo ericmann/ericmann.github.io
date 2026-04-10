@@ -4,8 +4,7 @@ updated: 2026-04-10
 
 ## Building
 
-- **Canton Network infrastructure** — shipping Cantool (open-source CLI) and Tributary (validator platform) through Displace Technologies. Cantool just received a Canton Development Fund grant.
-- **Avro Digital** — founding engineer building Canton-native payment infrastructure and on-chain coordination systems.
+- **Canton Network infrastructure** — shipping Cantool (open-source CLI) through Displace Technologies.
 - **This site** — hand-coded portfolio with a hidden atmosphere rarity system. Six variants and counting.
 
 ## Writing
@@ -15,11 +14,11 @@ updated: 2026-04-10
 
 ## Speaking
 
-- Preparing for **php[tek] 2026** (May). Topic TBD.
+- Preparing for **php[tek] 2026** (May). Topics on vector databases and Kubernetes.
 
 ## Reading
 
-- *Designing Data-Intensive Applications* by Martin Kleppmann (re-read)
+- *Trust No One* by James Rollins
 
 ## Thinking About
 
