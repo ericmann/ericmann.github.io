@@ -19,8 +19,8 @@
   let lastTime = 0;
   let isPreview = false;
 
-  const REPEL_RADIUS = 200;
-  const REPEL_STRENGTH = 2800;
+  const REPEL_RADIUS = 250;
+  const REPEL_STRENGTH = 6000;
   const SPRING = 9.5;
   const DAMPING = 0.86;
   const GRAIN_SIZE = 22;

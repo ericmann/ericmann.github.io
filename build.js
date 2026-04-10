@@ -9,6 +9,7 @@ const pages = [
   { src: 'src/pages/index.html', out: path.join(DIST, 'index.html') },
   { src: 'src/pages/talks.html', out: path.join(DIST, 'talks', 'index.html') },
   { src: 'src/pages/atmosphere.html', out: path.join(DIST, 'atmosphere', 'index.html') },
+  { src: 'src/pages/blank.html', out: path.join(DIST, 'blank', 'index.html') },
   { src: 'src/work/ipo-security.html', out: path.join(DIST, 'work', 'ipo-security.html') },
   { src: 'src/work/il5-auth.html', out: path.join(DIST, 'work', 'il5-auth.html') },
   { src: 'src/work/e2ee-platform.html', out: path.join(DIST, 'work', 'e2ee-platform.html') },
