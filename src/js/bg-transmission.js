@@ -1,27 +1,34 @@
 // ═══════════════════════════════════════
 // TRANSMISSION — reward-only
 // One-shot typing sequence on a black screen. Green monospaced
-// text types out line-by-line, holds, glitches, then fades to
-// black and fires onComplete. Not in the weighted rotation —
-// triggered only as a reward when all atmospheres are found.
+// text types out line-by-line, then waits for user input before
+// glitching out and handing control to the normal atmosphere.
+// Not in the weighted rotation — triggered only when all
+// atmospheres have been seen.
 // ═══════════════════════════════════════
 (function() {
   window.Atmospheres = window.Atmospheres || {};
 
-  let canvas, ctx, raf = 0;
-  let W = 0, H = 0, dpr = 1;
-  let isPreview = false;
-  let onComplete = null;
+  var canvas, ctx, raf = 0;
+  var W = 0, H = 0, dpr = 1;
+  var isPreview = false;
+  var onComplete = null;
 
-  let timeouts = [];
-  let phase = 'idle';
-  let lines = [];
-  let cursorVisible = true;
-  let cursorInterval = 0;
-  let typingLine = 0;
-  let typingChar = 0;
-  let glitchStart = 0;
-  let destroyed = false;
+  var timeouts = [];
+  var phase = 'idle';
+  var lines = [];
+  var cursorVisible = true;
+  var cursorInterval = 0;
+  var typingLine = 0;
+  var typingChar = 0;
+  var glitchStart = 0;
+  var destroyed = false;
+  var maxLineWidth = 0;
+  var keyHandler = null;
+  var linkEl = null;
+  var holdPromptAlpha = 0;
+
+  var LINKEDIN_URL = 'https://linkedin.com/in/ericallenmann';
 
   var MESSAGE = [
     'INCOMING TRANSMISSION...',
@@ -36,16 +43,20 @@
     '\u2192 linkedin.com/in/ericallenmann',
   ];
 
+  var PROMPT_TEXT = 'PRESS ENTER TO CONTINUE';
+  var AUTO_DISMISS_MS = 30000;
+
   var GLITCH_CHARS = '\u2588\u2593\u2592\u2591';
   var CHAR_DELAY = 50;
   var CHAR_JITTER = 20;
   var LINE_PAUSE = 400;
   var BLANK_PAUSE = 200;
-  var HOLD_DURATION = 3000;
   var GLITCH_DURATION = 500;
   var GLITCH_TICK = 50;
   var FONT_SIZE = 16;
   var LINE_HEIGHT = 24;
+
+  var LINKEDIN_LINE_INDEX = 9;
 
   function schedule(fn, ms) {
     var id = setTimeout(fn, ms);
@@ -66,8 +77,6 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
-  var maxLineWidth = 0;
-
   function measureMaxLine() {
     if (!ctx || maxLineWidth > 0) return;
     ctx.font = FONT_SIZE + 'px monospace';
@@ -76,11 +85,14 @@
       var w = ctx.measureText(MESSAGE[i]).width;
       if (w > maxLineWidth) maxLineWidth = w;
     }
+    var pw = ctx.measureText(PROMPT_TEXT).width;
+    if (pw > maxLineWidth) maxLineWidth = pw;
   }
 
   function textOrigin() {
     measureMaxLine();
-    var blockH = MESSAGE.length * LINE_HEIGHT;
+    var totalLines = MESSAGE.length + 2;
+    var blockH = totalLines * LINE_HEIGHT;
     var x = (W - maxLineWidth) / 2;
     var y = (H - blockH) / 2;
     return { x: Math.max(20, x), y: Math.max(20, y) };
@@ -103,11 +115,12 @@
     var y0 = origin.y;
 
     for (var i = 0; i < lines.length; i++) {
+      if (i === LINKEDIN_LINE_INDEX && phase === 'hold') continue;
       var text = lines[i].join('');
       ctx.fillText(text, x0, y0 + i * LINE_HEIGHT);
     }
 
-    if ((phase === 'type' || phase === 'hold') && cursorVisible) {
+    if (phase === 'type' && cursorVisible) {
       var curLine = Math.min(typingLine, lines.length - 1);
       if (curLine >= 0 && lines[curLine]) {
         var lineText = lines[curLine].join('');
@@ -117,13 +130,38 @@
       }
     }
 
+    if (phase === 'hold' && holdPromptAlpha > 0) {
+      var promptY = y0 + (MESSAGE.length + 1) * LINE_HEIGHT;
+      ctx.globalAlpha = holdPromptAlpha * (cursorVisible ? 1.0 : 0.4);
+      ctx.fillText(PROMPT_TEXT, x0, promptY);
+      ctx.globalAlpha = 1.0;
+    }
+
     ctx.shadowColor = 'transparent';
     ctx.shadowBlur = 0;
+  }
+
+  function positionLink() {
+    if (!linkEl || !ctx) return;
+    var origin = textOrigin();
+    var x0 = origin.x;
+    var y0 = origin.y + LINKEDIN_LINE_INDEX * LINE_HEIGHT;
+
+    ctx.font = FONT_SIZE + 'px monospace';
+    var arrowWidth = ctx.measureText('\u2192 ').width;
+
+    linkEl.style.left = (x0 + arrowWidth) + 'px';
+    linkEl.style.top = y0 + 'px';
   }
 
   function frame() {
     if (destroyed) return;
     raf = requestAnimationFrame(frame);
+
+    if (phase === 'hold' && holdPromptAlpha < 1) {
+      holdPromptAlpha = Math.min(1, holdPromptAlpha + 0.02);
+    }
+
     render();
   }
 
@@ -163,7 +201,53 @@
 
   function startHold() {
     phase = 'hold';
-    schedule(startGlitch, HOLD_DURATION);
+    holdPromptAlpha = 0;
+
+    createLink();
+
+    keyHandler = function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        dismiss();
+      }
+    };
+    document.addEventListener('keydown', keyHandler);
+
+    schedule(dismiss, AUTO_DISMISS_MS);
+  }
+
+  function createLink() {
+    linkEl = document.createElement('a');
+    linkEl.href = LINKEDIN_URL;
+    linkEl.target = '_blank';
+    linkEl.rel = 'noopener';
+    linkEl.textContent = 'linkedin.com/in/ericallenmann';
+    linkEl.style.cssText =
+      'position:fixed;z-index:10000;' +
+      'font:' + FONT_SIZE + 'px monospace;' +
+      'color:#39ff7a;text-decoration:underline;' +
+      'text-shadow:0 0 4px #39ff7a;' +
+      'cursor:pointer;line-height:' + LINE_HEIGHT + 'px;' +
+      'padding:0;margin:0;background:transparent;border:none;';
+    document.body.appendChild(linkEl);
+    positionLink();
+  }
+
+  function removeLink() {
+    if (linkEl && linkEl.parentNode) {
+      linkEl.parentNode.removeChild(linkEl);
+    }
+    linkEl = null;
+  }
+
+  function dismiss() {
+    if (phase !== 'hold') return;
+    if (keyHandler) {
+      document.removeEventListener('keydown', keyHandler);
+      keyHandler = null;
+    }
+    removeLink();
+    startGlitch();
   }
 
   function startGlitch() {
@@ -180,6 +264,7 @@
       phase = 'complete';
       render();
       showPageContent();
+      document.body.style.cursor = '';
       if (onComplete) onComplete();
       return;
     }
@@ -228,6 +313,7 @@
     H = opts.height || window.innerHeight;
     onComplete = opts.onComplete || null;
     maxLineWidth = 0;
+    holdPromptAlpha = 0;
 
     lines = [];
     typingLine = 0;
@@ -236,7 +322,10 @@
 
     applySize();
 
-    if (!isPreview) hidePageContent();
+    if (!isPreview) {
+      hidePageContent();
+      document.body.style.cursor = 'none';
+    }
 
     cursorInterval = setInterval(function() {
       cursorVisible = !cursorVisible;
@@ -258,11 +347,17 @@
     timeouts = [];
     if (cursorInterval) clearInterval(cursorInterval);
     cursorInterval = 0;
+    if (keyHandler) {
+      document.removeEventListener('keydown', keyHandler);
+      keyHandler = null;
+    }
+    removeLink();
     if (ctx && canvas) {
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
     if (hiddenEls.length) showPageContent();
+    document.body.style.cursor = '';
     lines = [];
     phase = 'idle';
     canvas = ctx = null;
@@ -270,6 +365,7 @@
     cursorVisible = true;
     typingLine = typingChar = 0;
     maxLineWidth = 0;
+    holdPromptAlpha = 0;
     isPreview = false;
   }
 

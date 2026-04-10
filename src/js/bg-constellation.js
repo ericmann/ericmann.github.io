@@ -208,13 +208,12 @@
   }
 
   function updateScroll() {
-    const docH = document.body.scrollHeight - window.innerHeight;
-    if (docH <= 0) return;
-    const ratio = Math.min(window.scrollY / docH, 1);
+    var docH = document.body.scrollHeight - window.innerHeight;
+    var ratio = docH <= 0 ? 1 : Math.min(window.scrollY / docH, 1);
     if (ratio > peakScroll) peakScroll = ratio;
 
-    const unlockCount = Math.floor(peakScroll * edges.length);
-    for (let i = 0; i < edges.length; i++) {
+    var unlockCount = Math.floor(peakScroll * edges.length);
+    for (var i = 0; i < edges.length; i++) {
       edges[i].target = i < unlockCount ? 1 : 0;
     }
   }
