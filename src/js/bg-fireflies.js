@@ -15,8 +15,8 @@
   let lastTime = 0;
   let isPreview = false;
 
-  var REPEL_RADIUS = 100;
-  var REPEL_FORCE = 600;
+  var REPEL_RADIUS = 140;
+  var REPEL_FORCE = 1800;
   var STUN_DURATION = 0.3;
   var INTER_REPEL_RADIUS = 50;
   var INTER_REPEL_FORCE = 40;

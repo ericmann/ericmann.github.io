@@ -26,6 +26,7 @@
   const LEAF_RADIUS_MAX = 3;
 
   function makeBranch(x, y, angle, maxLength, depth) {
+    var curveBias = (Math.random() - 0.5) * 0.6;
     return {
       startX: x,
       startY: y,
@@ -38,15 +39,34 @@
       growthSpeed: (0.3 + Math.random() * 0.3) / (1 + depth * 0.4),
       hasLeaf: depth >= 5 && Math.random() < LEAF_CHANCE,
       leafRadius: LEAF_RADIUS_MIN + Math.random() * (LEAF_RADIUS_MAX - LEAF_RADIUS_MIN),
+      curveBias: curveBias,
     };
   }
 
+  function controlX(b) {
+    var perpAngle = b.angle + Math.PI * 0.5;
+    var cpDist = b.maxLength * b.curveBias;
+    return b.startX + Math.cos(b.angle) * b.maxLength * 0.5 + Math.cos(perpAngle) * cpDist;
+  }
+
+  function controlY(b) {
+    var perpAngle = b.angle + Math.PI * 0.5;
+    var cpDist = b.maxLength * b.curveBias;
+    return b.startY + Math.sin(b.angle) * b.maxLength * 0.5 + Math.sin(perpAngle) * cpDist;
+  }
+
   function tipX(b) {
-    return b.startX + Math.cos(b.angle) * b.maxLength * b.growth;
+    var t = b.growth;
+    var sx = b.startX, cx = controlX(b);
+    var ex = b.startX + Math.cos(b.angle) * b.maxLength;
+    return (1 - t) * (1 - t) * sx + 2 * (1 - t) * t * cx + t * t * ex;
   }
 
   function tipY(b) {
-    return b.startY + Math.sin(b.angle) * b.maxLength * b.growth;
+    var t = b.growth;
+    var sy = b.startY, cy = controlY(b);
+    var ey = b.startY + Math.sin(b.angle) * b.maxLength;
+    return (1 - t) * (1 - t) * sy + 2 * (1 - t) * t * cy + t * t * ey;
   }
 
   function spawnChildren(branch) {
@@ -121,9 +141,15 @@
       alpha += 0.15;
     }
 
+    var cx = controlX(branch);
+    var cy = controlY(branch);
+    var g = branch.growth;
+    var midCx = branch.startX + (cx - branch.startX) * g;
+    var midCy = branch.startY + (cy - branch.startY) * g;
+
     ctx.beginPath();
     ctx.moveTo(branch.startX, branch.startY);
-    ctx.lineTo(tx, ty);
+    ctx.quadraticCurveTo(midCx, midCy, tx, ty);
     ctx.strokeStyle = 'rgba(200,220,240,' + Math.min(alpha, 0.85).toFixed(3) + ')';
     ctx.lineWidth = lineWidth;
     ctx.lineCap = 'round';

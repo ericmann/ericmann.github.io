@@ -1,8 +1,8 @@
 // ═══════════════════════════════════════
 // AURORA — northern lights curtains
-// Layered sine-wave curtains of light undulating across the top 40%
-// of the viewport. Colors cycle slowly through green → cyan → violet.
-// Mouse Y gently modulates the slowest sine frequency.
+// Layered sine-wave curtains of light undulating across most of the
+// viewport. Colors cycle slowly through green → cyan → violet.
+// Mouse Y very subtly modulates the slowest sine frequency.
 // ═══════════════════════════════════════
 (function() {
   window.Atmospheres = window.Atmospheres || {};
@@ -22,45 +22,45 @@
 
   const curtains = [
     {
-      baseYFrac: 0.12,
+      baseYFrac: 0.15,
       hueOffset: 0,
-      thickness: 110,
+      thickness: 160,
       layers: [
-        { amp: 30, freq: 0.003,  speed: 0.15 },
-        { amp: 18, freq: 0.007,  speed: -0.25 },
-        { amp: 10, freq: 0.013,  speed: 0.4 },
-        { amp: 5,  freq: 0.021,  speed: -0.6 },
+        { amp: 45, freq: 0.003,  speed: 0.15 },
+        { amp: 25, freq: 0.007,  speed: -0.25 },
+        { amp: 14, freq: 0.013,  speed: 0.4 },
+        { amp: 7,  freq: 0.021,  speed: -0.6 },
       ],
     },
     {
-      baseYFrac: 0.18,
+      baseYFrac: 0.30,
       hueOffset: 40,
-      thickness: 90,
+      thickness: 140,
       layers: [
-        { amp: 35, freq: 0.004,  speed: -0.12 },
-        { amp: 15, freq: 0.009,  speed: 0.3 },
-        { amp: 8,  freq: 0.016,  speed: -0.45 },
+        { amp: 50, freq: 0.004,  speed: -0.12 },
+        { amp: 22, freq: 0.009,  speed: 0.3 },
+        { amp: 12, freq: 0.016,  speed: -0.45 },
       ],
     },
     {
-      baseYFrac: 0.25,
+      baseYFrac: 0.48,
       hueOffset: 90,
-      thickness: 80,
+      thickness: 130,
       layers: [
-        { amp: 25, freq: 0.0035, speed: 0.18 },
-        { amp: 20, freq: 0.008,  speed: -0.22 },
-        { amp: 12, freq: 0.014,  speed: 0.35 },
-        { amp: 6,  freq: 0.025,  speed: -0.5 },
+        { amp: 40, freq: 0.0035, speed: 0.18 },
+        { amp: 28, freq: 0.008,  speed: -0.22 },
+        { amp: 16, freq: 0.014,  speed: 0.35 },
+        { amp: 8,  freq: 0.025,  speed: -0.5 },
       ],
     },
     {
-      baseYFrac: 0.32,
+      baseYFrac: 0.62,
       hueOffset: 140,
-      thickness: 85,
+      thickness: 120,
       layers: [
-        { amp: 28, freq: 0.0025, speed: -0.14 },
-        { amp: 14, freq: 0.006,  speed: 0.28 },
-        { amp: 9,  freq: 0.018,  speed: -0.38 },
+        { amp: 35, freq: 0.0025, speed: -0.14 },
+        { amp: 18, freq: 0.006,  speed: 0.28 },
+        { amp: 11, freq: 0.018,  speed: -0.38 },
       ],
     },
   ];
@@ -71,7 +71,7 @@
       const l = curtain.layers[i];
       let freq = l.freq;
       if (i === curtain.layers.length - 1) {
-        freq *= (0.85 + mouseMod * 0.3);
+        freq *= (0.95 + mouseMod * 0.1);
       }
       y += l.amp * Math.sin(x * freq + l.speed * t);
     }

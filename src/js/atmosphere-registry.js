@@ -24,4 +24,5 @@ window.AtmosphereRegistry = [
   { id: 'sonar',          name: 'Sonar',           weight: 2,  rarity: 'exotic',   mobileFriendly: false },
   { id: 'roots',          name: 'Roots',           weight: 2,  rarity: 'exotic',   mobileFriendly: true  },
   { id: 'aurora',         name: 'Aurora',          weight: 2,  rarity: 'exotic',   mobileFriendly: false },
+  { id: 'fractal',        name: 'Fractal',         weight: 1,  rarity: 'exotic',   mobileFriendly: true  },
 ];
