@@ -95,10 +95,23 @@ function serve(dir, port) {
       await page.waitForTimeout(1000);
       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
       await page.waitForTimeout(3000);
+    } else if (variant === 'rain') {
+      await page.waitForTimeout(2000);
+      const rainSweeps = [
+        { x1: 200, y1: 150, x2: 600, y2: 450 },
+        { x1: 600, y1: 100, x2: 200, y2: 500 },
+        { x1: 100, y1: 300, x2: 700, y2: 300 },
+        { x1: 400, y1: 100, x2: 400, y2: 500 },
+      ];
+      for (const s of rainSweeps) {
+        await page.mouse.move(s.x1, s.y1, { steps: 3 });
+        await page.mouse.move(s.x2, s.y2, { steps: 30 });
+      }
+      await page.waitForTimeout(2000);
     } else if (variant === 'roots') {
       await page.waitForTimeout(8000);
     } else if (variant === 'fractal') {
-      await page.waitForTimeout(15000);
+      await page.waitForTimeout(42000);
     } else {
       await page.waitForTimeout(RENDER_MS);
     }
