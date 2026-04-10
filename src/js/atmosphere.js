@@ -18,9 +18,10 @@
 // ═══════════════════════════════════════
 (function() {
   const COOKIE_NAME = 'eam_atmo';
+  const PICKS_KEY = 'eam_atmo_picks';
+  const SEEN_KEY  = 'eam_atmo_seen';
+  const TRANSMISSION_KEY = 'eam_atmo_transmission_last';
 
-  // Read from the shared registry (atmosphere-registry.js).
-  // Map 'id' to 'name' for backward compat with the rest of this file.
   const VARIANTS = (window.AtmosphereRegistry || []).map(function(v) {
     return { name: v.id, weight: v.weight, mobileFriendly: v.mobileFriendly, hidden: v.hidden };
   });
@@ -35,32 +36,53 @@
     catch (e) { return false; }
   }
 
-  // Touch devices get the non-mobile-friendly variants at 1/10 weight.
   function effectiveWeight(v) {
     if (isTouchPrimary() && !v.mobileFriendly) return v.weight / 10;
     return v.weight;
   }
 
-  // Linear interpolation between the two anchor points the user specified:
+  // ── Adaptive weighting ──
+  // Decrease probability of frequently-selected atmospheres.
+  // Formula: weight / (1 + pickCount * 0.3)
+  function getPickCounts() {
+    try {
+      return JSON.parse(localStorage.getItem(PICKS_KEY) || '{}');
+    } catch (e) { return {}; }
+  }
+
+  function recordPick(name) {
+    try {
+      var counts = getPickCounts();
+      counts[name] = (counts[name] || 0) + 1;
+      localStorage.setItem(PICKS_KEY, JSON.stringify(counts));
+    } catch (e) { /* localStorage unavailable */ }
+  }
+
+  function adaptiveWeight(v) {
+    var w = effectiveWeight(v);
+    var counts = getPickCounts();
+    var picks = counts[v.name] || 0;
+    return w / (1 + picks * 0.3);
+  }
+
+  // Linear interpolation between the two anchor points:
   //   weight 80 → 24h  (starfield)
   //   weight 20 → 168h (7 days)
-  // Extrapolates smoothly for other weights, clamped to [24h, 30d].
-  // Rare variants stick longer so curious visitors can appreciate them.
+  // Clamped to [24h, 30d].
   function expiryHoursFor(weight) {
-    const hours = 216 - 2.4 * weight;
+    var hours = 216 - 2.4 * weight;
     return Math.max(24, Math.min(720, Math.round(hours)));
   }
 
   // ── Cookie helpers ──
   function readCookie() {
-    const m = document.cookie.match(new RegExp('(?:^|; )' + COOKIE_NAME + '=([^;]*)'));
+    var m = document.cookie.match(new RegExp('(?:^|; )' + COOKIE_NAME + '=([^;]*)'));
     return m ? decodeURIComponent(m[1]) : null;
   }
   function writeCookie(variantName) {
-    const v = VARIANTS.find(x => x.name === variantName);
-    // Expiry uses the *canonical* weight; mobile adjustments don't affect it.
-    const hours = v ? expiryHoursFor(v.weight) : 24;
-    const exp = new Date(Date.now() + hours * 3600 * 1000).toUTCString();
+    var v = VARIANTS.find(function(x) { return x.name === variantName; });
+    var hours = v ? expiryHoursFor(v.weight) : 24;
+    var exp = new Date(Date.now() + hours * 3600 * 1000).toUTCString();
     document.cookie = COOKIE_NAME + '=' + encodeURIComponent(variantName) +
       '; expires=' + exp + '; path=/; SameSite=Lax';
   }
@@ -68,62 +90,90 @@
     document.cookie = COOKIE_NAME + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
   }
   function isValidVariant(name) {
-    return VARIANTS.some(v => v.name === name);
+    return VARIANTS.some(function(v) { return v.name === name; });
   }
 
   // ── Collection tracking ──
+  function getSeen() {
+    try {
+      return JSON.parse(localStorage.getItem(SEEN_KEY) || '[]');
+    } catch (e) { return []; }
+  }
   function trackSeen(name) {
     try {
-      var seen = JSON.parse(localStorage.getItem('eam_atmo_seen') || '[]');
+      var seen = getSeen();
       if (seen.indexOf(name) === -1) {
         seen.push(name);
-        localStorage.setItem('eam_atmo_seen', JSON.stringify(seen));
+        localStorage.setItem(SEEN_KEY, JSON.stringify(seen));
       }
     } catch (e) { /* localStorage unavailable */ }
   }
 
-  // ── Random pick ──
+  // ── Transmission check ──
+  // Returns true if all normal (non-hidden) atmospheres have been seen
+  // and the transmission hasn't fired in the last 7 days.
+  function shouldShowTransmission() {
+    var normalVariants = VARIANTS.filter(function(v) { return !v.hidden; });
+    var seen = getSeen();
+    var allSeen = normalVariants.every(function(v) {
+      return seen.indexOf(v.name) !== -1;
+    });
+    if (!allSeen) return false;
+
+    try {
+      var lastShown = parseInt(localStorage.getItem(TRANSMISSION_KEY) || '0', 10);
+      var weekMs = 7 * 24 * 60 * 60 * 1000;
+      if (Date.now() - lastShown < weekMs) return false;
+    } catch (e) { /* play it safe — don't show */ return false; }
+
+    return true;
+  }
+
+  function markTransmissionShown() {
+    try {
+      localStorage.setItem(TRANSMISSION_KEY, String(Date.now()));
+    } catch (e) { /* no-op */ }
+  }
+
+  // ── Random pick (adaptive) ──
   function weightedPick() {
-    const eligible = VARIANTS.filter(v => !v.hidden);
-    const total = eligible.reduce((a, v) => a + effectiveWeight(v), 0);
-    let r = Math.random() * total;
-    for (const v of eligible) {
-      r -= effectiveWeight(v);
-      if (r <= 0) return v.name;
+    var eligible = VARIANTS.filter(function(v) { return !v.hidden; });
+    var total = eligible.reduce(function(a, v) { return a + adaptiveWeight(v); }, 0);
+    var r = Math.random() * total;
+    for (var i = 0; i < eligible.length; i++) {
+      r -= adaptiveWeight(eligible[i]);
+      if (r <= 0) return eligible[i].name;
     }
     return eligible[0].name;
   }
 
   function getOrPickVariant() {
-    // Accessibility: reduced-motion visitors always get the starfield.
-    // We force-rewrite the cookie so a prior stored choice can't bypass it.
     if (prefersReducedMotion()) {
       writeCookie('starfield');
       return 'starfield';
     }
-    const stored = readCookie();
+    var stored = readCookie();
     if (stored && isValidVariant(stored)) return stored;
-    const picked = weightedPick();
+    // New selection — record the pick
+    var picked = weightedPick();
     writeCookie(picked);
+    recordPick(picked);
     return picked;
   }
 
   // ── Lifecycle ──
-  let active = null; // { name, module }
+  var active = null;
 
-  // A canvas can only ever own one rendering context (2d OR webgl), and
-  // once lost it can't be re-acquired cleanly — so on swap we simply hand
-  // the next module a fresh DOM node.
   function freshenCanvas(id) {
-    const old = document.getElementById(id);
+    var old = document.getElementById(id);
     if (!old || !old.parentNode) return;
-    const fresh = old.cloneNode(false);
+    var fresh = old.cloneNode(false);
     old.parentNode.replaceChild(fresh, old);
   }
 
   function activate(name) {
-    const registry = window.Atmospheres || {};
-    const mod = registry[name];
+    var registry = window.Atmospheres || {};
+    var mod = registry[name];
     if (!mod || typeof mod.init !== 'function') {
       console.warn('[atmosphere] module not registered:', name);
       return false;
@@ -137,7 +187,7 @@
     }
     try {
       mod.init();
-      active = { name, module: mod };
+      active = { name: name, module: mod };
       document.documentElement.setAttribute('data-atmosphere', name);
       trackSeen(name);
       logBanner(name);
@@ -149,26 +199,26 @@
   }
 
   function randomSwitch() {
-    const current = active && active.name;
-    const eligible = VARIANTS.filter(v => !v.hidden);
-    const total = eligible.reduce(function(a, v) {
-      var w = effectiveWeight(v);
+    var current = active && active.name;
+    var eligible = VARIANTS.filter(function(v) { return !v.hidden; });
+    var total = eligible.reduce(function(a, v) {
+      var w = adaptiveWeight(v);
       if (v.name === current) w /= 100;
       return a + w;
     }, 0);
     var r = Math.random() * total;
     var picked = eligible[0].name;
     for (var i = 0; i < eligible.length; i++) {
-      var w = effectiveWeight(eligible[i]);
+      var w = adaptiveWeight(eligible[i]);
       if (eligible[i].name === current) w /= 100;
       r -= w;
       if (r <= 0) { picked = eligible[i].name; break; }
     }
     writeCookie(picked);
+    recordPick(picked);
     activateWhenReady(picked);
   }
 
-  // Wait until the chosen module has registered before activating it.
   function activateWhenReady(name, attempt) {
     attempt = attempt || 0;
     if (window.Atmospheres && window.Atmospheres[name]) {
@@ -177,19 +227,19 @@
     }
     if (attempt > 50) {
       console.warn('[atmosphere] giving up waiting for', name);
-      const fallback = Object.keys(window.Atmospheres || {})[0];
+      var fallback = Object.keys(window.Atmospheres || {})[0];
       if (fallback) activate(fallback);
       return;
     }
-    setTimeout(() => activateWhenReady(name, attempt + 1), 20);
+    setTimeout(function() { activateWhenReady(name, attempt + 1); }, 20);
   }
 
   // ── Console banner & rarity reveal ──
-  let bannerPrinted = false;
+  var bannerPrinted = false;
   function rarityLabel(name) {
-    const v = VARIANTS.find(x => x.name === name);
+    var v = VARIANTS.find(function(x) { return x.name === name; });
     if (!v) return name;
-    const total = VARIANTS.reduce((a, x) => a + x.weight, 0);
+    var total = VARIANTS.reduce(function(a, x) { return a + x.weight; }, 0);
     var pct = ((v.weight / total) * 100).toFixed(1);
     return name + ' · ' + pct + '%';
   }
@@ -231,20 +281,20 @@
 
   // ── Konami code ──
   //   ↑↑↓↓←→←→ B A Enter → weighted random shuffle (current variant ÷100)
-  const KONAMI = [
+  var KONAMI = [
     'ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown',
     'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight',
     'b', 'a', 'Enter',
   ];
-  let buffer = [];
+  var buffer = [];
   function onKey(e) {
-    const key = (e.key && e.key.length === 1) ? e.key.toLowerCase() : e.key;
+    var key = (e.key && e.key.length === 1) ? e.key.toLowerCase() : e.key;
     buffer.push(key);
     if (buffer.length > KONAMI.length) {
       buffer = buffer.slice(-KONAMI.length);
     }
     if (buffer.length < KONAMI.length) return;
-    for (let i = 0; i < KONAMI.length; i++) {
+    for (var i = 0; i < KONAMI.length; i++) {
       if (buffer[i] !== KONAMI[i]) return;
     }
     buffer = [];
@@ -252,26 +302,80 @@
   }
   document.addEventListener('keydown', onKey);
 
-  // Debug API.
+  // Debug API. Transmission is excluded — not directly selectable.
   window.Atmosphere = {
-    list: () => VARIANTS.filter(v => !v.hidden).map(v => v.name),
-    listAll: () => VARIANTS.map(v => v.name),
-    current: () => active && active.name,
-    set: (name) => {
+    list: function() { return VARIANTS.filter(function(v) { return !v.hidden; }).map(function(v) { return v.name; }); },
+    listAll: function() { return VARIANTS.map(function(v) { return v.name; }); },
+    current: function() { return active && active.name; },
+    set: function(name) {
       if (!isValidVariant(name)) return false;
       writeCookie(name);
+      recordPick(name);
       activateWhenReady(name);
       return true;
     },
-    next: () => randomSwitch(),
+    next: function() { randomSwitch(); },
     clear: clearCookie,
   };
 
-  // Boot.
+  // ── Boot ──
+  function boot() {
+    var chosen = getOrPickVariant();
+
+    if (shouldShowTransmission()) {
+      markTransmissionShown();
+      activateWhenReady('transmission', 0, chosen);
+    } else {
+      activateWhenReady(chosen);
+    }
+  }
+
+  // Overload activateWhenReady to support a follow-up atmosphere for transmission
+  var _origActivateWhenReady = activateWhenReady;
+  activateWhenReady = function(name, attempt, followUp) {
+    attempt = attempt || 0;
+    if (name === 'transmission') {
+      var registry = window.Atmospheres || {};
+      if (registry.transmission) {
+        var transmod = registry.transmission;
+        if (active && active.module) {
+          if (typeof active.module.destroy === 'function') {
+            try { active.module.destroy(); } catch (e) {}
+          }
+          freshenCanvas('bg');
+          freshenCanvas('fx');
+        }
+        transmod.init({
+          onComplete: function() {
+            if (typeof transmod.destroy === 'function') {
+              try { transmod.destroy(); } catch (e) {}
+            }
+            freshenCanvas('bg');
+            freshenCanvas('fx');
+            if (followUp) {
+              _origActivateWhenReady(followUp);
+            }
+          }
+        });
+        active = { name: 'transmission', module: transmod };
+        document.documentElement.setAttribute('data-atmosphere', 'transmission');
+        trackSeen('transmission');
+        return;
+      }
+      if (attempt > 50) {
+        if (followUp) _origActivateWhenReady(followUp);
+        return;
+      }
+      setTimeout(function() { activateWhenReady(name, attempt + 1, followUp); }, 20);
+      return;
+    }
+    _origActivateWhenReady(name, attempt);
+  };
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => activateWhenReady(getOrPickVariant()));
+    document.addEventListener('DOMContentLoaded', boot);
   } else {
-    activateWhenReady(getOrPickVariant());
+    boot();
   }
 })();
 
@@ -279,11 +383,11 @@
 // SCROLL REVEAL (shared, runs regardless of background)
 // ═══════════════════════════════════════
 (function() {
-  const reveals = document.querySelectorAll('.reveal');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
+  var reveals = document.querySelectorAll('.reveal');
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
       if (entry.isIntersecting) entry.target.classList.add('visible');
     });
   }, { threshold: 0.1 });
-  reveals.forEach(el => observer.observe(el));
+  reveals.forEach(function(el) { observer.observe(el); });
 })();

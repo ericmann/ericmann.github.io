@@ -6,9 +6,10 @@
   if (!ATMOSPHERES.length) return;
 
   var RARITY_LABELS = {
-    'default': 'DEFAULT',
-    'rare':    'RARE',
-    'exotic':  'EXOTIC'
+    'default':  'DEFAULT',
+    'uncommon': 'UNCOMMON',
+    'rare':     'RARE',
+    'exotic':   'EXOTIC'
   };
 
   var totalWeight = ATMOSPHERES.reduce(function(sum, v) { return sum + v.weight; }, 0);
@@ -22,6 +23,8 @@
   var seen = getSeen();
   var countEl = document.getElementById('atmo-count');
   if (countEl) countEl.textContent = seen.length;
+  var totalEl = document.getElementById('atmo-total');
+  if (totalEl) totalEl.textContent = ATMOSPHERES.length;
 
   ATMOSPHERES.forEach(function(atmo) {
     var isSeen = seen.indexOf(atmo.id) !== -1;

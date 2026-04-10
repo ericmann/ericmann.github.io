@@ -53,7 +53,7 @@ function serve(dir, port) {
       if (window.Atmosphere && window.Atmosphere.set) window.Atmosphere.set(name);
     }, variant);
 
-    const MOUSE_VARIANTS = ['abyss', 'forge', 'fireflies', 'dunes'];
+    const MOUSE_VARIANTS = ['abyss', 'forge', 'fireflies', 'dunes', 'kinetic'];
     if (MOUSE_VARIANTS.includes(variant)) {
       await page.waitForTimeout(1500);
       const sweeps = [
