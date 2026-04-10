@@ -1,9 +1,9 @@
 // ═══════════════════════════════════════
 // FRACTAL — super exotic
-// Particles wander randomly, then slowly converge into a Sierpinski
-// triangle via the chaos game. The structure emerges from noise over
-// ~30 seconds like a signal locking in. Ice-blue on black, no color.
-// Mouse proximity gently disturbs settled particles.
+// Particles wander randomly, then converge into a Sierpinski triangle
+// via the chaos game. Each particle jumps to the midpoint between
+// itself and a random vertex, leaving fading traces that reveal the
+// fractal structure. Ice-blue on black. Mouse scatters particles.
 // ═══════════════════════════════════════
 (function() {
   window.Atmospheres = window.Atmospheres || {};
@@ -18,18 +18,17 @@
 
   let particles = [];
   let vertices = [];
-  let trailCanvas = null, trailCtx = null;
 
-  const PARTICLE_COUNT_FULL = 800;
-  const PARTICLE_COUNT_PREVIEW = 300;
-  const SETTLE_START = 2;
-  const SETTLE_DURATION = 25;
-  const MOUSE_RADIUS = 120;
-  const MOUSE_PUSH = 400;
-  const FADE_ALPHA = 0.012;
+  const COUNT_FULL = 600;
+  const COUNT_PREVIEW = 250;
+  const WANDER_PHASE = 4;
+  const CONVERGE_RAMP = 12;
+  const MOUSE_RADIUS = 200;
+  const MOUSE_PUSH = 2400;
+  const TRAIL_FADE = 0.04;
 
   function computeVertices() {
-    var pad = Math.min(W, H) * 0.08;
+    var pad = Math.min(W, H) * 0.1;
     var triH = H - pad * 2;
     var triW = triH * (2 / Math.sqrt(3));
     if (triW > W - pad * 2) {
@@ -49,18 +48,13 @@
     return {
       x: Math.random() * W,
       y: Math.random() * H,
-      tx: 0, ty: 0,
-      vx: (Math.random() - 0.5) * 60,
-      vy: (Math.random() - 0.5) * 60,
-      settled: false,
-      brightness: 0.3 + Math.random() * 0.4,
+      vx: (Math.random() - 0.5) * 80,
+      vy: (Math.random() - 0.5) * 80,
+      driftAngle: Math.random() * Math.PI * 2,
+      driftRate: 0.4 + Math.random() * 0.8,
+      speed: 15 + Math.random() * 25,
+      scattered: 0,
     };
-  }
-
-  function chaosStep(p) {
-    var v = vertices[Math.floor(Math.random() * 3)];
-    p.tx = (p.x + v.x) / 2;
-    p.ty = (p.y + v.y) / 2;
   }
 
   function applySize() {
@@ -75,18 +69,12 @@
     canvas.style.height = H + 'px';
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    trailCanvas.width  = W * dpr;
-    trailCanvas.height = H * dpr;
-    trailCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    trailCtx.fillStyle = '#050510';
-    trailCtx.fillRect(0, 0, W, H);
-
     computeVertices();
     initParticles();
   }
 
   function initParticles() {
-    var count = isPreview ? PARTICLE_COUNT_PREVIEW : PARTICLE_COUNT_FULL;
+    var count = isPreview ? COUNT_PREVIEW : COUNT_FULL;
     particles = [];
     for (var i = 0; i < count; i++) {
       particles.push(createParticle());
@@ -99,28 +87,39 @@
     lastTime = now;
     time += dt;
 
-    var settleT = Math.max(0, Math.min(1, (time - SETTLE_START) / SETTLE_DURATION));
-    var convergence = settleT * settleT;
+    var convergeT = Math.max(0, Math.min(1, (time - WANDER_PHASE) / CONVERGE_RAMP));
+    var convergence = convergeT * convergeT;
 
-    trailCtx.fillStyle = 'rgba(5, 5, 16, ' + FADE_ALPHA + ')';
-    trailCtx.fillRect(0, 0, W, H);
+    ctx.fillStyle = 'rgba(5, 5, 16, ' + TRAIL_FADE.toFixed(3) + ')';
+    ctx.fillRect(0, 0, W, H);
 
     var haveMouse = !isPreview && mouseX > -9000;
 
     for (var i = 0; i < particles.length; i++) {
       var p = particles[i];
 
-      if (convergence > 0.01) {
-        chaosStep(p);
-
-        var pullStrength = convergence * 4;
-        p.vx += (p.tx - p.x) * pullStrength * dt;
-        p.vy += (p.ty - p.y) * pullStrength * dt;
+      if (p.scattered > 0) {
+        p.scattered -= dt;
       }
 
-      if (convergence < 0.95) {
-        p.vx += (Math.random() - 0.5) * 30 * (1 - convergence) * dt;
-        p.vy += (Math.random() - 0.5) * 30 * (1 - convergence) * dt;
+      var doJump = convergence > 0.01 && p.scattered <= 0;
+
+      if (doJump) {
+        var v = vertices[Math.floor(Math.random() * 3)];
+        var blend = convergence;
+        p.x = p.x + (((p.x + v.x) * 0.5) - p.x) * blend;
+        p.y = p.y + (((p.y + v.y) * 0.5) - p.y) * blend;
+        p.vx *= (1 - convergence * 0.8);
+        p.vy *= (1 - convergence * 0.8);
+      }
+
+      if (convergence < 0.9 || p.scattered > 0) {
+        var wanderStrength = p.scattered > 0 ? 1 : (1 - convergence);
+        p.driftAngle += (Math.random() - 0.5) * p.driftRate * dt * 5;
+        var tx = Math.cos(p.driftAngle) * p.speed;
+        var ty = Math.sin(p.driftAngle) * p.speed;
+        p.vx += (tx - p.vx) * wanderStrength * dt * 3;
+        p.vy += (ty - p.vy) * wanderStrength * dt * 3;
       }
 
       if (haveMouse) {
@@ -133,13 +132,12 @@
           var push = fall * fall * MOUSE_PUSH;
           p.vx += (dmx / dist) * push * dt;
           p.vy += (dmy / dist) * push * dt;
+          p.scattered = 1.5;
         }
       }
 
-      var damping = 0.92 - convergence * 0.07;
-      p.vx *= damping;
-      p.vy *= damping;
-
+      p.vx *= 0.94;
+      p.vy *= 0.94;
       p.x += p.vx * dt;
       p.y += p.vy * dt;
 
@@ -148,14 +146,13 @@
       if (p.y < 0) { p.y = 0; p.vy *= -0.5; }
       else if (p.y > H) { p.y = H; p.vy *= -0.5; }
 
-      var alpha = p.brightness * (0.15 + convergence * 0.55);
-      var size = 1.5 - convergence * 0.7;
-      trailCtx.fillStyle = 'rgba(180, 210, 240, ' + alpha.toFixed(3) + ')';
-      trailCtx.fillRect(p.x - size * 0.5, p.y - size * 0.5, size, size);
-    }
+      var alpha = 0.15 + convergence * 0.5;
+      if (p.scattered > 0) alpha *= 0.6;
+      var size = 1.6 - convergence * 0.6;
 
-    ctx.clearRect(0, 0, W, H);
-    ctx.drawImage(trailCanvas, 0, 0, W * dpr, H * dpr, 0, 0, W, H);
+      ctx.fillStyle = 'rgba(180, 215, 240, ' + alpha.toFixed(3) + ')';
+      ctx.fillRect(p.x - size * 0.5, p.y - size * 0.5, size, size);
+    }
   }
 
   function init(opts) {
@@ -166,9 +163,6 @@
     ctx = canvas.getContext('2d');
     W = opts.width  || window.innerWidth;
     H = opts.height || window.innerHeight;
-
-    trailCanvas = document.createElement('canvas');
-    trailCtx = trailCanvas.getContext('2d');
 
     time = 0;
     mouseX = mouseY = -9999;
@@ -203,7 +197,6 @@
     particles = [];
     vertices = [];
     canvas = ctx = null;
-    trailCanvas = trailCtx = null;
     resizeHandler = mouseHandler = mouseLeaveHandler = null;
     mouseX = mouseY = -9999;
     isPreview = false;
