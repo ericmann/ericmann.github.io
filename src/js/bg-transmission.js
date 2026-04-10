@@ -202,6 +202,7 @@
   function startHold() {
     phase = 'hold';
     holdPromptAlpha = 0;
+    document.body.style.cursor = '';
 
     createLink();
 
@@ -229,6 +230,9 @@
       'text-shadow:0 0 4px #39ff7a;' +
       'cursor:pointer;line-height:' + LINE_HEIGHT + 'px;' +
       'padding:0;margin:0;background:transparent;border:none;';
+    linkEl.addEventListener('click', function() {
+      schedule(dismiss, 100);
+    });
     document.body.appendChild(linkEl);
     positionLink();
   }
