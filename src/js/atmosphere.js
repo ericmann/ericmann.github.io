@@ -84,6 +84,17 @@
     return VARIANTS.some(v => v.name === name);
   }
 
+  // ── Collection tracking ──
+  function trackSeen(name) {
+    try {
+      var seen = JSON.parse(localStorage.getItem('eam_atmo_seen') || '[]');
+      if (seen.indexOf(name) === -1) {
+        seen.push(name);
+        localStorage.setItem('eam_atmo_seen', JSON.stringify(seen));
+      }
+    } catch (e) { /* localStorage unavailable */ }
+  }
+
   // ── Random pick ──
   function weightedPick() {
     const eligible = VARIANTS.filter(v => !v.hidden);
@@ -141,6 +152,7 @@
       mod.init();
       active = { name, module: mod };
       document.documentElement.setAttribute('data-atmosphere', name);
+      trackSeen(name);
       logBanner(name);
       return true;
     } catch (e) {
@@ -207,6 +219,10 @@
         '%cThe starfield has siblings. Try ↑↑↓↓←→←→ B A Enter to cycle, or ↑↑↓↓←→←→ B A 1-' +
           VARIANTS.length + ' to jump. Atmosphere.list() for names.',
         'color: #8899aa; font-size: 11px; font-style: italic;'
+      );
+      console.log(
+        '%c// atmosphere index: /atmosphere/',
+        'color: #00f0ff55; font-size: 10px;'
       );
     }
     console.log(
