@@ -66,11 +66,24 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
+  var maxLineWidth = 0;
+
+  function measureMaxLine() {
+    if (!ctx || maxLineWidth > 0) return;
+    ctx.font = FONT_SIZE + 'px monospace';
+    maxLineWidth = 0;
+    for (var i = 0; i < MESSAGE.length; i++) {
+      var w = ctx.measureText(MESSAGE[i]).width;
+      if (w > maxLineWidth) maxLineWidth = w;
+    }
+  }
+
   function textOrigin() {
+    measureMaxLine();
     var blockH = MESSAGE.length * LINE_HEIGHT;
-    var x = W * 0.1;
-    var y = Math.max(H * 0.3, (H - blockH) / 2);
-    return { x: x, y: y };
+    var x = (W - maxLineWidth) / 2;
+    var y = (H - blockH) / 2;
+    return { x: Math.max(20, x), y: Math.max(20, y) };
   }
 
   function render() {
@@ -166,6 +179,7 @@
     if (elapsed >= GLITCH_DURATION) {
       phase = 'complete';
       render();
+      showPageContent();
       if (onComplete) onComplete();
       return;
     }
@@ -181,6 +195,28 @@
     schedule(glitchTick, GLITCH_TICK);
   }
 
+  var hiddenEls = [];
+
+  function hidePageContent() {
+    hiddenEls = [];
+    var els = document.querySelectorAll('body > *:not(canvas#bg):not(canvas#fx):not(.scanlines)');
+    for (var i = 0; i < els.length; i++) {
+      els[i].style.opacity = '0';
+      els[i].style.transition = 'none';
+      els[i].style.pointerEvents = 'none';
+      hiddenEls.push(els[i]);
+    }
+  }
+
+  function showPageContent() {
+    for (var i = 0; i < hiddenEls.length; i++) {
+      hiddenEls[i].style.transition = 'opacity 0.8s ease-in';
+      hiddenEls[i].style.opacity = '1';
+      hiddenEls[i].style.pointerEvents = '';
+    }
+    hiddenEls = [];
+  }
+
   function init(opts) {
     opts = opts || {};
     destroyed = false;
@@ -191,6 +227,7 @@
     W = opts.width  || window.innerWidth;
     H = opts.height || window.innerHeight;
     onComplete = opts.onComplete || null;
+    maxLineWidth = 0;
 
     lines = [];
     typingLine = 0;
@@ -198,6 +235,8 @@
     phase = 'boot';
 
     applySize();
+
+    if (!isPreview) hidePageContent();
 
     cursorInterval = setInterval(function() {
       cursorVisible = !cursorVisible;
@@ -223,12 +262,14 @@
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
+    if (hiddenEls.length) showPageContent();
     lines = [];
     phase = 'idle';
     canvas = ctx = null;
     onComplete = null;
     cursorVisible = true;
     typingLine = typingChar = 0;
+    maxLineWidth = 0;
     isPreview = false;
   }
 

@@ -45,18 +45,22 @@
 
   function spawnRipple() {
     var edge = Math.floor(Math.random() * 4);
-    var dx = 0, dy = 0, origin = 0;
-    if (edge === 0) { dy = 1; origin = 0; }
-    else if (edge === 1) { dy = -1; origin = H; }
-    else if (edge === 2) { dx = 1; origin = 0; }
-    else { dx = -1; origin = W; }
+    var dx = 0, dy = 0, startPos = 0;
+    // Ripple travels along one axis; startPos is the wavefront's
+    // initial coordinate on that axis, moving in the sign of dx/dy.
+    if (edge === 0) { dy = 1; startPos = -RIPPLE_FADE_WIDTH; }         // top → down
+    else if (edge === 1) { dy = -1; startPos = H + RIPPLE_FADE_WIDTH; } // bottom → up
+    else if (edge === 2) { dx = 1; startPos = -RIPPLE_FADE_WIDTH; }     // left → right
+    else { dx = -1; startPos = W + RIPPLE_FADE_WIDTH; }                  // right → left
+
+    var span = (dx !== 0 ? W : H) + RIPPLE_FADE_WIDTH * 2;
 
     ripples.push({
       dx: dx, dy: dy,
-      origin: origin,
+      pos: startPos,
       speed: RIPPLE_SPEED_MIN + Math.random() * (RIPPLE_SPEED_MAX - RIPPLE_SPEED_MIN),
-      dist: 0,
-      maxDist: (dx !== 0 ? W : H) + RIPPLE_FADE_WIDTH,
+      distTraveled: 0,
+      maxDist: span,
     });
   }
 
@@ -108,8 +112,13 @@
     }
 
     for (var ri = ripples.length - 1; ri >= 0; ri--) {
-      ripples[ri].dist += ripples[ri].speed * dt;
-      if (ripples[ri].dist > ripples[ri].maxDist) {
+      var rr = ripples[ri];
+      var step = rr.speed * dt;
+      // Move wavefront position along its travel direction
+      if (rr.dx !== 0) rr.pos += rr.dx * step;
+      else rr.pos += rr.dy * step;
+      rr.distTraveled += step;
+      if (rr.distTraveled > rr.maxDist) {
         ripples.splice(ri, 1);
       }
     }
@@ -147,10 +156,12 @@
       p.rippleInfluence = 0;
       for (var ri = 0; ri < ripples.length; ri++) {
         var r = ripples[ri];
-        var particlePos = r.dx !== 0
-          ? (p.x - r.origin) * r.dx
-          : (p.y - r.origin) * r.dy;
-        var behind = r.dist - particlePos;
+        // Particle's coordinate on the ripple's travel axis
+        var pCoord = r.dx !== 0 ? p.x : p.y;
+        // Signed distance from wavefront to particle, in the travel direction.
+        // Positive = particle is behind the wavefront (already passed).
+        var dir = r.dx !== 0 ? r.dx : r.dy;
+        var behind = (r.pos - pCoord) * dir;
         if (behind >= 0 && behind < RIPPLE_FADE_WIDTH) {
           var infl = 1 - behind / RIPPLE_FADE_WIDTH;
           var displaceForce = infl * RIPPLE_DISPLACE * SPRING;

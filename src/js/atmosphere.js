@@ -302,7 +302,7 @@
   }
   document.addEventListener('keydown', onKey);
 
-  // Debug API. Transmission is excluded — not directly selectable.
+  // Debug API. Transmission is excluded from normal rotation.
   window.Atmosphere = {
     list: function() { return VARIANTS.filter(function(v) { return !v.hidden; }).map(function(v) { return v.name; }); },
     listAll: function() { return VARIANTS.map(function(v) { return v.name; }); },
@@ -316,6 +316,12 @@
     },
     next: function() { randomSwitch(); },
     clear: clearCookie,
+    // Temporary debug: force-play the transmission sequence.
+    // Remove before final ship.
+    transmission: function() {
+      var current = active && active.name;
+      activateWhenReady('transmission', 0, current || 'starfield');
+    },
   };
 
   // ── Boot ──

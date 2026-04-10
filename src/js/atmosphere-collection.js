@@ -31,6 +31,17 @@
     var pct = totalWeight > 0 ? Math.round((atmo.weight / totalWeight) * 100) : 0;
     var card = document.createElement('div');
     card.className = 'atmo-card' + (isSeen ? '' : ' locked');
+    if (isSeen) {
+      card.style.cursor = 'pointer';
+      card.title = 'Switch to ' + atmo.name;
+      card.addEventListener('click', (function(id) {
+        return function() {
+          if (window.Atmosphere && window.Atmosphere.set) {
+            window.Atmosphere.set(id);
+          }
+        };
+      })(atmo.id));
+    }
 
     var img = document.createElement('img');
     img.className = 'atmo-preview';
