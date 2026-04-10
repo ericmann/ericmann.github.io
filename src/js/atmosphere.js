@@ -316,12 +316,6 @@
     },
     next: function() { randomSwitch(); },
     clear: clearCookie,
-    // Temporary debug: force-play the transmission sequence.
-    // Remove before final ship.
-    transmission: function() {
-      var current = active && active.name;
-      activateWhenReady('transmission', 0, current || 'starfield');
-    },
   };
 
   // ── Boot ──
