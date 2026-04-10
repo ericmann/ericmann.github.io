@@ -786,7 +786,7 @@ footer {
 }
 .atmo-preview {
   width: 100%;
-  aspect-ratio: 16 / 9;
+  height: 200px;
   object-fit: cover;
   background: var(--bg);
   display: block;

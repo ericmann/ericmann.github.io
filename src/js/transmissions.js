@@ -227,8 +227,8 @@
           if (item.excerpt) {
             var excerptEl = document.createElement('p');
             excerptEl.style.cssText = 'font-size:0.85rem;color:var(--text-dim);margin-top:0.4rem;';
-            excerptEl.textContent = item.excerpt;
             item.contentEl.appendChild(excerptEl);
+            typeText(excerptEl, item.excerpt);
           }
         });
       }, delay);
