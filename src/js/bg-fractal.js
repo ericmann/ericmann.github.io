@@ -1,9 +1,10 @@
 // ═══════════════════════════════════════
 // FRACTAL — super exotic
-// Particles wander randomly, then snap into Sierpinski triangle
-// positions via the chaos game. The particles ARE the fractal —
-// no trails, just dots at their current positions. Mouse proximity
-// scatters them; they find their way back. Ice-blue on black.
+// Each particle has a home position on the Sierpinski triangle,
+// pre-computed via the chaos game at init. Particles start scattered
+// and drift randomly, then gradually converge toward their homes
+// over ~40 seconds, revealing the fractal structure. Mouse scatters
+// nearby particles; they drift back. Ice-blue on black.
 // ═══════════════════════════════════════
 (function() {
   window.Atmospheres = window.Atmospheres || {};
@@ -19,14 +20,15 @@
   let particles = [];
   let vertices = [];
 
-  const COUNT_FULL = 2000;
-  const COUNT_PREVIEW = 800;
-  const WANDER_PHASE = 3;
-  const CONVERGE_RAMP = 10;
+  const COUNT_FULL = 3000;
+  const COUNT_PREVIEW = 1200;
+  const WANDER_PHASE = 5;
+  const CONVERGE_RAMP = 35;
   const MOUSE_RADIUS = 200;
   const MOUSE_PUSH = 3000;
-
-  const JUMPS_PER_FRAME_MAX = 6;
+  const PULL_MAX = 5.0;
+  const DAMPING = 0.9;
+  const CHAOS_ITERATIONS = 30;
 
   function computeVertices() {
     var pad = Math.min(W, H) * 0.1;
@@ -45,17 +47,33 @@
     ];
   }
 
+  function computeHome() {
+    var hx = Math.random() * W;
+    var hy = Math.random() * H;
+    for (var i = 0; i < CHAOS_ITERATIONS; i++) {
+      var v = vertices[Math.floor(Math.random() * 3)];
+      hx = (hx + v.x) * 0.5;
+      hy = (hy + v.y) * 0.5;
+    }
+    return { x: hx, y: hy };
+  }
+
   function createParticle() {
+    var home = computeHome();
     return {
       x: Math.random() * W,
       y: Math.random() * H,
-      vx: (Math.random() - 0.5) * 80,
-      vy: (Math.random() - 0.5) * 80,
+      homeX: home.x,
+      homeY: home.y,
+      vx: (Math.random() - 0.5) * 60,
+      vy: (Math.random() - 0.5) * 60,
       driftAngle: Math.random() * Math.PI * 2,
-      driftRate: 0.4 + Math.random() * 0.8,
-      speed: 15 + Math.random() * 30,
+      driftRate: 0.3 + Math.random() * 0.7,
+      speed: 12 + Math.random() * 25,
       scattered: 0,
-      onFractal: false,
+      shimmerPhase: Math.random() * Math.PI * 2,
+      shimmerFreq: 0.5 + Math.random() * 1.0,
+      shimmerAmp: 1.5 + Math.random() * 2.5,
     };
   }
 
@@ -96,29 +114,28 @@
     ctx.fillRect(0, 0, W, H);
 
     var haveMouse = !isPreview && mouseX > -9000;
-    var jumpsThisFrame = Math.max(1, Math.round(convergence * JUMPS_PER_FRAME_MAX));
+    var pull = convergence * PULL_MAX;
 
     for (var i = 0; i < particles.length; i++) {
       var p = particles[i];
 
       if (p.scattered > 0) {
         p.scattered -= dt;
-        p.onFractal = false;
       }
 
-      if (convergence > 0.01 && p.scattered <= 0) {
-        for (var j = 0; j < jumpsThisFrame; j++) {
-          var v = vertices[Math.floor(Math.random() * 3)];
-          p.x = (p.x + v.x) * 0.5;
-          p.y = (p.y + v.y) * 0.5;
-        }
-        p.vx *= 0.3;
-        p.vy *= 0.3;
-        p.onFractal = true;
-      } else if (p.scattered > 0 || convergence <= 0.01) {
-        p.driftAngle += (Math.random() - 0.5) * p.driftRate * dt * 5;
-        p.vx += (Math.cos(p.driftAngle) * p.speed - p.vx) * dt * 3;
-        p.vy += (Math.sin(p.driftAngle) * p.speed - p.vy) * dt * 3;
+      if (pull > 0.01 && p.scattered <= 0) {
+        var t = time * p.shimmerFreq + p.shimmerPhase;
+        var sx = p.homeX + Math.sin(t) * p.shimmerAmp;
+        var sy = p.homeY + Math.cos(t * 0.8 + 1.3) * p.shimmerAmp * 0.7;
+        p.vx += (sx - p.x) * pull * dt;
+        p.vy += (sy - p.y) * pull * dt;
+      }
+
+      var wanderAmt = p.scattered > 0 ? 0.7 : Math.max(0, 1 - convergence * 1.5);
+      if (wanderAmt > 0.01) {
+        p.driftAngle += (Math.random() - 0.5) * p.driftRate * dt * 4;
+        p.vx += (Math.cos(p.driftAngle) * p.speed - p.vx) * wanderAmt * dt * 2;
+        p.vy += (Math.sin(p.driftAngle) * p.speed - p.vy) * wanderAmt * dt * 2;
       }
 
       if (haveMouse) {
@@ -131,28 +148,29 @@
           var push = fall * fall * MOUSE_PUSH;
           p.vx += (dmx / dist) * push * dt;
           p.vy += (dmy / dist) * push * dt;
-          p.scattered = 2.0;
-          p.onFractal = false;
+          p.scattered = 2.5;
         }
       }
 
-      if (!p.onFractal) {
-        p.vx *= 0.95;
-        p.vy *= 0.95;
-        p.x += p.vx * dt;
-        p.y += p.vy * dt;
+      p.vx *= DAMPING;
+      p.vy *= DAMPING;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
 
-        if (p.x < 0) { p.x = 0; p.vx *= -0.5; }
-        else if (p.x > W) { p.x = W; p.vx *= -0.5; }
-        if (p.y < 0) { p.y = 0; p.vy *= -0.5; }
-        else if (p.y > H) { p.y = H; p.vy *= -0.5; }
-      }
+      if (p.x < 0) { p.x = 0; p.vx *= -0.5; }
+      else if (p.x > W) { p.x = W; p.vx *= -0.5; }
+      if (p.y < 0) { p.y = 0; p.vy *= -0.5; }
+      else if (p.y > H) { p.y = H; p.vy *= -0.5; }
 
-      var alpha = p.onFractal ? 0.55 : 0.2;
-      var size = p.onFractal ? 1.0 : 1.5;
+      var distHome = Math.abs(p.x - p.homeX) + Math.abs(p.y - p.homeY);
+      var nearHome = distHome < 10;
+      var alpha = nearHome ? (0.35 + convergence * 0.35) : (0.2 + convergence * 0.15);
+      var size = nearHome ? 1.4 : 1.8;
 
-      ctx.fillStyle = 'rgba(180, 215, 240, ' + alpha + ')';
-      ctx.fillRect(p.x - size * 0.5, p.y - size * 0.5, size, size);
+      ctx.fillStyle = 'rgba(180, 215, 240, ' + alpha.toFixed(3) + ')';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, size * 0.5, 0, Math.PI * 2);
+      ctx.fill();
     }
   }
 
