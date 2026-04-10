@@ -97,6 +97,8 @@ function serve(dir, port) {
       await page.waitForTimeout(3000);
     } else if (variant === 'roots') {
       await page.waitForTimeout(8000);
+    } else if (variant === 'fractal') {
+      await page.waitForTimeout(15000);
     } else {
       await page.waitForTimeout(RENDER_MS);
     }
