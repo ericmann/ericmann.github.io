@@ -474,6 +474,10 @@ footer {
   width: 100%;
   margin: 0 auto;
   padding: 7rem 2rem 4rem;
+  background: var(--panel-bg);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--panel-border);
+  border-radius: 2px;
 }
 .page-content .panel-header { margin-bottom: 0.5rem; }
 .page-content h1 {
@@ -710,6 +714,8 @@ footer {
   font-size: 0.95rem;
   line-height: 1.7;
   color: var(--text);
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 .tx-content a {
   color: var(--text-bright);
@@ -795,10 +801,8 @@ footer {
   text-transform: uppercase;
 }
 .atmo-rarity.default { color: var(--text-dim); }
-.atmo-rarity.uncommon { color: var(--cyan); }
 .atmo-rarity.rare { color: var(--cyan); }
-.atmo-rarity.very-rare { color: var(--magenta); }
-.atmo-rarity.super-rare { color: var(--amber); }
+.atmo-rarity.exotic { color: var(--amber); }
 .atmo-status {
   font-family: var(--font-mono);
   font-size: 0.55rem;

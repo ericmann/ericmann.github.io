@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════
-// STARFIELD — default (90%)
+// STARFIELD — default
 // Hyperspace stars + magenta/cyan nebulae + occasional shooting stars.
 // ═══════════════════════════════════════
 (function() {
@@ -9,32 +9,32 @@
   let renderer, scene, camera, starGeo, mouseHandler, resizeHandler;
   let fxCanvas, fxResize;
 
-  function init() {
-    const canvas = document.getElementById('bg');
+  function init(opts) {
+    opts = opts || {};
+    const preview = !!opts.preview;
+    const canvas = opts.canvas || document.getElementById('bg');
+    const width  = opts.width  || window.innerWidth;
+    const height = opts.height || window.innerHeight;
     if (!canvas || !window.THREE) return;
 
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: !preview, alpha: true });
+    renderer.setPixelRatio(preview ? 1 : Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(width, height);
 
     scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 2000);
+    camera = new THREE.PerspectiveCamera(60, width / height, 1, 2000);
     camera.position.z = 800;
 
-    // Compute the frustum extent at the back-plane (z=-1000) from the camera's
-    // actual FOV + aspect. Without this, stars spawn in a fixed 2000×2000 box
-    // and the left/right margins of wide viewports stay empty.
-    // The 1.15 buffer accounts for the small camera drift (±40 from mouse).
     const Z_BACK = -1000;
     let halfW = 1000, halfH = 1000;
     function recomputeExtents() {
-      const dist = camera.position.z - Z_BACK; // 1800
+      const dist = camera.position.z - Z_BACK;
       halfH = Math.tan((camera.fov * Math.PI) / 360) * dist * 1.15;
       halfW = halfH * camera.aspect;
     }
     recomputeExtents();
 
-    const STAR_COUNT = 3000;
+    const STAR_COUNT = preview ? 600 : 3000;
     starGeo = new THREE.BufferGeometry();
     const positions = new Float32Array(STAR_COUNT * 3);
     const colors = new Float32Array(STAR_COUNT * 3);
@@ -55,9 +55,8 @@
     });
     scene.add(new THREE.Points(starGeo, starMat));
 
-    // Nebula clouds — also scaled to the actual frustum.
+    const nebCount = preview ? 40 : 200;
     const nebGeo = new THREE.BufferGeometry();
-    const nebCount = 200;
     const nebPos = new Float32Array(nebCount * 3);
     const nebCol = new Float32Array(nebCount * 3);
     for (let i = 0; i < nebCount; i++) {
@@ -77,11 +76,13 @@
     })));
 
     let mouseX = 0, mouseY = 0;
-    mouseHandler = e => {
-      mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
-      mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
-    };
-    document.addEventListener('mousemove', mouseHandler);
+    if (!preview) {
+      mouseHandler = e => {
+        mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+        mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+      };
+      document.addEventListener('mousemove', mouseHandler);
+    }
 
     const clock = new THREE.Clock();
     function animate() {
@@ -105,79 +106,78 @@
     }
     animate();
 
-    resizeHandler = () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      // Refresh the spawn extents so newly recycled stars use the new aspect.
-      // Existing stars retain their positions and will fan out as they cycle.
-      recomputeExtents();
-    };
-    window.addEventListener('resize', resizeHandler);
+    if (!preview) {
+      resizeHandler = () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        recomputeExtents();
+      };
+      window.addEventListener('resize', resizeHandler);
 
-    // Shooting stars on the fx canvas.
-    fxCanvas = document.getElementById('fx');
-    if (fxCanvas) {
-      const ctx = fxCanvas.getContext('2d');
-      let W, H;
-      fxResize = () => { W = fxCanvas.width = window.innerWidth; H = fxCanvas.height = window.innerHeight; };
-      fxResize();
-      window.addEventListener('resize', fxResize);
+      fxCanvas = document.getElementById('fx');
+      if (fxCanvas) {
+        const ctx = fxCanvas.getContext('2d');
+        let W, H;
+        fxResize = () => { W = fxCanvas.width = window.innerWidth; H = fxCanvas.height = window.innerHeight; };
+        fxResize();
+        window.addEventListener('resize', fxResize);
 
-      const meteors = [];
-      function spawnMeteor() {
-        const x = Math.random() * W * 1.2;
-        const angle = 0.6 + Math.random() * 0.4;
-        const speed = 400 + Math.random() * 600;
-        meteors.push({
-          x, y: -20,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed,
-          life: 1,
-          decay: 0.6 + Math.random() * 0.8,
-          len: 60 + Math.random() * 100,
-        });
-      }
-
-      let lastTime = performance.now();
-      function drawFrame(now) {
-        raf2 = requestAnimationFrame(drawFrame);
-        const dt = (now - lastTime) / 1000;
-        lastTime = now;
-        ctx.clearRect(0, 0, W, H);
-        if (Math.random() < 0.004) spawnMeteor();
-        for (let i = meteors.length - 1; i >= 0; i--) {
-          const m = meteors[i];
-          m.x += m.vx * dt;
-          m.y += m.vy * dt;
-          m.life -= m.decay * dt;
-          if (m.life <= 0 || m.x > W + 100 || m.y > H + 100) { meteors.splice(i, 1); continue; }
-          const alpha = m.life;
-          const hyp = Math.hypot(m.vx, m.vy);
-          const tailX = m.x - (m.vx / hyp) * m.len;
-          const tailY = m.y - (m.vy / hyp) * m.len;
-          const grad = ctx.createLinearGradient(m.x, m.y, tailX, tailY);
-          grad.addColorStop(0, `rgba(255,255,255,${alpha * 0.9})`);
-          grad.addColorStop(0.3, `rgba(200,230,255,${alpha * 0.5})`);
-          grad.addColorStop(1, 'rgba(100,180,255,0)');
-          ctx.save();
-          ctx.strokeStyle = grad;
-          ctx.lineWidth = 1.5;
-          ctx.lineCap = 'round';
-          ctx.beginPath();
-          ctx.moveTo(m.x, m.y);
-          ctx.lineTo(tailX, tailY);
-          ctx.stroke();
-          ctx.fillStyle = `rgba(255,255,255,${alpha})`;
-          ctx.shadowColor = '#aaddff';
-          ctx.shadowBlur = 6;
-          ctx.beginPath();
-          ctx.arc(m.x, m.y, 1.2, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.restore();
+        const meteors = [];
+        function spawnMeteor() {
+          const x = Math.random() * W * 1.2;
+          const angle = 0.6 + Math.random() * 0.4;
+          const speed = 400 + Math.random() * 600;
+          meteors.push({
+            x, y: -20,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            life: 1,
+            decay: 0.6 + Math.random() * 0.8,
+            len: 60 + Math.random() * 100,
+          });
         }
+
+        let lastTime = performance.now();
+        function drawFrame(now) {
+          raf2 = requestAnimationFrame(drawFrame);
+          const dt = (now - lastTime) / 1000;
+          lastTime = now;
+          ctx.clearRect(0, 0, W, H);
+          if (Math.random() < 0.004) spawnMeteor();
+          for (let i = meteors.length - 1; i >= 0; i--) {
+            const m = meteors[i];
+            m.x += m.vx * dt;
+            m.y += m.vy * dt;
+            m.life -= m.decay * dt;
+            if (m.life <= 0 || m.x > W + 100 || m.y > H + 100) { meteors.splice(i, 1); continue; }
+            const alpha = m.life;
+            const hyp = Math.hypot(m.vx, m.vy);
+            const tailX = m.x - (m.vx / hyp) * m.len;
+            const tailY = m.y - (m.vy / hyp) * m.len;
+            const grad = ctx.createLinearGradient(m.x, m.y, tailX, tailY);
+            grad.addColorStop(0, `rgba(255,255,255,${alpha * 0.9})`);
+            grad.addColorStop(0.3, `rgba(200,230,255,${alpha * 0.5})`);
+            grad.addColorStop(1, 'rgba(100,180,255,0)');
+            ctx.save();
+            ctx.strokeStyle = grad;
+            ctx.lineWidth = 1.5;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(m.x, m.y);
+            ctx.lineTo(tailX, tailY);
+            ctx.stroke();
+            ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+            ctx.shadowColor = '#aaddff';
+            ctx.shadowBlur = 6;
+            ctx.beginPath();
+            ctx.arc(m.x, m.y, 1.2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+          }
+        }
+        raf2 = requestAnimationFrame(drawFrame);
       }
-      raf2 = requestAnimationFrame(drawFrame);
     }
   }
 

@@ -216,21 +216,22 @@
       feed.appendChild(note);
     }
 
-    typeSequence(items, 0);
+    typeAll(items);
   }
 
-  function typeSequence(items, idx) {
-    if (idx >= items.length) return;
-    var item = items[idx];
-
-    typeText(item.typeTo, item.text, function() {
-      if (item.excerpt) {
-        var excerptEl = document.createElement('p');
-        excerptEl.style.cssText = 'font-size:0.85rem;color:var(--text-dim);margin-top:0.4rem;';
-        excerptEl.textContent = item.excerpt;
-        item.contentEl.appendChild(excerptEl);
-      }
-      typeSequence(items, idx + 1);
+  function typeAll(items) {
+    items.forEach(function(item) {
+      var delay = Math.floor(Math.random() * 800);
+      setTimeout(function() {
+        typeText(item.typeTo, item.text, function() {
+          if (item.excerpt) {
+            var excerptEl = document.createElement('p');
+            excerptEl.style.cssText = 'font-size:0.85rem;color:var(--text-dim);margin-top:0.4rem;';
+            excerptEl.textContent = item.excerpt;
+            item.contentEl.appendChild(excerptEl);
+          }
+        });
+      }, delay);
     });
   }
 

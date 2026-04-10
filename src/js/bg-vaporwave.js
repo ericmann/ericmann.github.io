@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════
-// VAPORWAVE — uncommon (5%)
+// VAPORWAVE — rare
 // Endless cyan grid scrolling toward a neon sun on the horizon,
 // with wireframe mountains and floating chevrons. Tuned to lean on
 // the site's cyan/magenta/amber palette so it feels native.
@@ -7,7 +7,6 @@
 (function() {
   window.Atmospheres = window.Atmospheres || {};
 
-  // Match the site's :root palette exactly.
   const CYAN    = 0x00f0ff;
   const MAGENTA = 0xff00aa;
   const AMBER   = 0xffaa00;
@@ -19,23 +18,19 @@
   let mouseX = 0, mouseY = 0;
   let yaw = 0;
 
-  // Build a CanvasTexture for the sun: vertical gradient amber → magenta
-  // with horizontal bars cut out for the signature synthwave look.
-  // Uses the site's exact amber and magenta tones.
   function makeSunTexture() {
     const c = document.createElement('canvas');
     c.width = c.height = 256;
     const ctx = c.getContext('2d');
     const grad = ctx.createLinearGradient(0, 0, 0, 256);
-    grad.addColorStop(0.0, '#ffd96b'); // soft warm top
-    grad.addColorStop(0.35, '#ffaa00'); // site amber
-    grad.addColorStop(0.75, '#ff00aa'); // site magenta
+    grad.addColorStop(0.0, '#ffd96b');
+    grad.addColorStop(0.35, '#ffaa00');
+    grad.addColorStop(0.75, '#ff00aa');
     grad.addColorStop(1.0, '#3a0050');
     ctx.fillStyle = grad;
     ctx.beginPath();
     ctx.arc(128, 128, 120, 0, Math.PI * 2);
     ctx.fill();
-    // Horizontal bars cut out of the lower half.
     ctx.globalCompositeOperation = 'destination-out';
     for (let i = 0; i < 7; i++) {
       const y = 140 + i * 14 + i * 1.5;
@@ -81,14 +76,12 @@
   }
 
   function buildChevron(color) {
-    // A floating low-poly diamond — just two triangles outlined.
     const s = 30;
     const v = new Float32Array([
       0, s, 0,   s, 0, 0,
       s, 0, 0,   0,-s, 0,
       0,-s, 0,  -s, 0, 0,
      -s, 0, 0,   0, s, 0,
-      // inner cross
       0, s, 0,   0,-s, 0,
      -s, 0, 0,   s, 0, 0,
     ]);
@@ -98,36 +91,36 @@
     return new THREE.LineSegments(g, m);
   }
 
-  function init() {
-    const canvas = document.getElementById('bg');
+  function init(opts) {
+    opts = opts || {};
+    const preview = !!opts.preview;
+    const canvas = opts.canvas || document.getElementById('bg');
+    const width  = opts.width  || window.innerWidth;
+    const height = opts.height || window.innerHeight;
     if (!canvas || !window.THREE) return;
 
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: !preview, alpha: true });
+    renderer.setPixelRatio(preview ? 1 : Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(width, height);
     renderer.setClearColor(0x000000, 0);
 
     scene = new THREE.Scene();
-    // Fog matches the site bg (#050510) so the horizon dissolves into the page.
     scene.fog = new THREE.Fog(0x050510, 800, 2400);
 
-    camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 5000);
+    camera = new THREE.PerspectiveCamera(70, width / height, 1, 5000);
     camera.position.set(0, 80, 0);
     camera.lookAt(0, 80, -100);
 
-    // Cyan-dominant grid with magenta accent — primary color of the site leads.
     gridLines  = buildGrid(CYAN,    0.80, -20, 3200, 100);
     gridLines2 = buildGrid(MAGENTA, 0.25, -22, 3200, 200);
     scene.add(gridLines);
     scene.add(gridLines2);
 
-    // Distant mountains in two layers, cyan dominant.
     mountains  = buildMountains(CYAN,  -2200, 0.7,  280);
     mountains2 = buildMountains(AMBER, -2400, 0.35, 200);
     scene.add(mountains);
     scene.add(mountains2);
 
-    // The sun: a billboarded plane with a gradient canvas texture.
     const sunTex = makeSunTexture();
     const sunMat = new THREE.MeshBasicMaterial({
       map: sunTex, transparent: true, depthWrite: false,
@@ -137,8 +130,8 @@
     sunMesh.position.set(0, 280, -2300);
     scene.add(sunMesh);
 
-    // Floating chevrons drifting in front of the sun.
-    for (let i = 0; i < 8; i++) {
+    const chevronCount = preview ? 4 : 8;
+    for (let i = 0; i < chevronCount; i++) {
       const ch = buildChevron(i % 2 === 0 ? CYAN : MAGENTA);
       ch.position.set(
         (Math.random() - 0.5) * 1600,
@@ -151,21 +144,23 @@
       chevrons.push(ch);
     }
 
-    resizeHandler = () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    };
-    window.addEventListener('resize', resizeHandler);
+    if (!preview) {
+      resizeHandler = () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      };
+      window.addEventListener('resize', resizeHandler);
 
-    mouseHandler = e => {
-      mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
-      mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
-    };
-    document.addEventListener('mousemove', mouseHandler);
+      mouseHandler = e => {
+        mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+        mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+      };
+      document.addEventListener('mousemove', mouseHandler);
+    }
 
     let last = performance.now();
-    const SPEED = 110; // outrun cruising speed
+    const SPEED = 110;
 
     function frame(now) {
       raf = requestAnimationFrame(frame);
@@ -173,13 +168,11 @@
       last = now;
       const t = now * 0.001;
 
-      // Scroll the grids forward.
       gridLines.position.z  += SPEED * dt;
       gridLines2.position.z += SPEED * 0.5 * dt;
       if (gridLines.position.z  > 100) gridLines.position.z  -= 100;
       if (gridLines2.position.z > 200) gridLines2.position.z -= 200;
 
-      // Chevrons drift forward + slow spin + bob.
       for (const ch of chevrons) {
         ch.position.z += SPEED * 0.4 * dt;
         ch.rotation.z += ch.userData.spin * dt;
@@ -190,15 +183,12 @@
         }
       }
 
-      // Sun gently bobs to feel alive.
       sunMesh.position.y = 280 + Math.sin(t * 0.5) * 6;
 
-      // Mouse-driven yaw: pan the world so the sun glides past as you move.
       const yawTarget = -mouseX * 0.4;
       yaw += (yawTarget - yaw) * 0.04;
       camera.rotation.y = yaw;
 
-      // Camera bob + vertical mouse parallax.
       camera.position.y = 80 + Math.sin(t * 1.2) * 1.5 + (-mouseY * 12);
       camera.rotation.z = Math.sin(t * 0.2) * 0.005;
 

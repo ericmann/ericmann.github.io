@@ -1,9 +1,9 @@
 // ═══════════════════════════════════════
-// ABYSS — super rare (0.25%)
+// ABYSS — exotic
 // The void absorbs the cursor's kinetic energy. Each cursor move spawns
 // soft glowing particles that drift in the direction of travel, grow as
 // they fade, and stack additively to form clean fluid-like trails.
-// Inspired by the splash-cursor effect on dalelarroder.com.
+// In preview mode, autonomous particles emit gently from the center.
 // ═══════════════════════════════════════
 (function() {
   window.Atmospheres = window.Atmospheres || {};
@@ -15,16 +15,23 @@
   let lastMouseX = -9999, lastMouseY = -9999, lastMouseTime = 0;
   let lastTime = 0;
   let hueCycle = 0;
+  let isPreview = false;
 
-  function init() {
-    canvas = document.getElementById('bg');
+  function init(opts) {
+    opts = opts || {};
+    isPreview = !!opts.preview;
+    canvas = opts.canvas || document.getElementById('bg');
     if (!canvas) return;
     ctx = canvas.getContext('2d');
+    W = opts.width  || window.innerWidth;
+    H = opts.height || window.innerHeight;
 
     function applySize() {
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
-      W = window.innerWidth;
-      H = window.innerHeight;
+      dpr = isPreview ? 1 : Math.min(window.devicePixelRatio || 1, 2);
+      if (!isPreview) {
+        W = window.innerWidth;
+        H = window.innerHeight;
+      }
       canvas.width  = W * dpr;
       canvas.height = H * dpr;
       canvas.style.width  = W + 'px';
@@ -32,56 +39,55 @@
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
     applySize();
-    resizeHandler = applySize;
-    window.addEventListener('resize', resizeHandler);
 
-    mouseHandler = e => {
-      const x = e.clientX;
-      const y = e.clientY;
-      const now = performance.now();
+    if (!isPreview) {
+      resizeHandler = applySize;
+      window.addEventListener('resize', resizeHandler);
 
-      if (lastMouseX !== -9999) {
-        const dx = x - lastMouseX;
-        const dy = y - lastMouseY;
-        const dt = Math.max(0.001, (now - lastMouseTime) / 1000);
-        const vx = dx / dt;
-        const vy = dy / dt;
-        const dist = Math.hypot(dx, dy);
+      mouseHandler = e => {
+        const x = e.clientX;
+        const y = e.clientY;
+        const now = performance.now();
 
-        // Spawn particles spread along the cursor's path so a fast flick
-        // produces a continuous trail rather than discrete blobs.
-        const count = Math.min(1 + Math.floor(dist / 14), 5);
-        for (let i = 0; i < count; i++) {
-          const tt = (i + 1) / (count + 1);
-          const px = lastMouseX + dx * tt;
-          const py = lastMouseY + dy * tt;
+        if (lastMouseX !== -9999) {
+          const dx = x - lastMouseX;
+          const dy = y - lastMouseY;
+          const dt = Math.max(0.001, (now - lastMouseTime) / 1000);
+          const vx = dx / dt;
+          const vy = dy / dt;
+          const dist = Math.hypot(dx, dy);
 
-          // Slow oscillation between cyan (184) and magenta (320), with the
-          // occasional amber (40) accent — all from the site's :root palette.
-          hueCycle += 0.6;
-          const wave = Math.sin(hueCycle * 0.03);
-          let hue;
-          if (Math.random() < 0.06)      hue = 40;                 // rare amber
-          else if (wave > 0)              hue = 320 + (Math.random() - 0.5) * 18;
-          else                            hue = 184 + (Math.random() - 0.5) * 18;
+          const count = Math.min(1 + Math.floor(dist / 14), 5);
+          for (let i = 0; i < count; i++) {
+            const tt = (i + 1) / (count + 1);
+            const px = lastMouseX + dx * tt;
+            const py = lastMouseY + dy * tt;
 
-          particles.push({
-            x: px,
-            y: py,
-            vx: vx * 0.18 + (Math.random() - 0.5) * 60,
-            vy: vy * 0.18 + (Math.random() - 0.5) * 60,
-            size: 28 + Math.random() * 22,
-            life: 1,
-            hue,
-          });
+            hueCycle += 0.6;
+            const wave = Math.sin(hueCycle * 0.03);
+            let hue;
+            if (Math.random() < 0.06)      hue = 40;
+            else if (wave > 0)              hue = 320 + (Math.random() - 0.5) * 18;
+            else                            hue = 184 + (Math.random() - 0.5) * 18;
+
+            particles.push({
+              x: px,
+              y: py,
+              vx: vx * 0.18 + (Math.random() - 0.5) * 60,
+              vy: vy * 0.18 + (Math.random() - 0.5) * 60,
+              size: 28 + Math.random() * 22,
+              life: 1,
+              hue,
+            });
+          }
         }
-      }
 
-      lastMouseX = x;
-      lastMouseY = y;
-      lastMouseTime = now;
-    };
-    document.addEventListener('mousemove', mouseHandler);
+        lastMouseX = x;
+        lastMouseY = y;
+        lastMouseTime = now;
+      };
+      document.addEventListener('mousemove', mouseHandler);
+    }
 
     lastTime = performance.now();
     raf = requestAnimationFrame(frame);
@@ -92,22 +98,42 @@
     const dt = Math.min(0.05, (now - lastTime) / 1000);
     lastTime = now;
 
-    // Soft fade layer — keeps a bit of trail without smearing forever.
+    // In preview mode, emit gentle autonomous particles
+    if (isPreview && Math.random() < 0.15) {
+      hueCycle += 0.6;
+      const wave = Math.sin(hueCycle * 0.03);
+      let hue;
+      if (Math.random() < 0.06)      hue = 40;
+      else if (wave > 0)              hue = 320 + (Math.random() - 0.5) * 18;
+      else                            hue = 184 + (Math.random() - 0.5) * 18;
+
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 20 + Math.random() * 40;
+      particles.push({
+        x: W / 2 + (Math.random() - 0.5) * W * 0.4,
+        y: H / 2 + (Math.random() - 0.5) * H * 0.4,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        size: 16 + Math.random() * 14,
+        life: 1,
+        hue,
+      });
+    }
+
     ctx.globalCompositeOperation = 'source-over';
     ctx.fillStyle = 'rgba(5, 5, 16, 0.18)';
     ctx.fillRect(0, 0, W, H);
 
-    // Additive blending so overlapping particles bloom into a clean glow.
     ctx.globalCompositeOperation = 'lighter';
 
     for (let i = particles.length - 1; i >= 0; i--) {
       const p = particles[i];
       p.x += p.vx * dt;
       p.y += p.vy * dt;
-      p.vx *= 0.93;       // friction — particles slow as they drift
+      p.vx *= 0.93;
       p.vy *= 0.93;
-      p.life -= dt * 1.4; // lifetime ~0.7s
-      p.size += dt * 36;  // grow as they fade — smoke-like dispersion
+      p.life -= dt * 1.4;
+      p.size += dt * 36;
 
       if (p.life <= 0) { particles.splice(i, 1); continue; }
 
@@ -141,6 +167,7 @@
     lastMouseX = lastMouseY = -9999;
     lastMouseTime = 0;
     hueCycle = 0;
+    isPreview = false;
   }
 
   window.Atmospheres.abyss = { init, destroy };

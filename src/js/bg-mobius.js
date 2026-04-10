@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════
-// MOBIUS — uncommon (3%)
+// MOBIUS — rare
 // A warped, inverted torus-knot tube slowly rotating in 3D space.
 // Built as a hand-rolled parametric surface with a half-twist cross-section,
 // then rendered as a wireframe so the topology reads clearly even at low opacity.
@@ -11,11 +11,9 @@
   let mesh, innerMesh;
   let mouseX = 0, mouseY = 0, mouseHandler;
 
-  // Build a Mobius-style tube: sweep a circle around a main loop, while
-  // rotating the cross-section by u/2 (half-twist over one revolution).
   function makeMobiusTube(R, r, segU, segV) {
     const positions = [];
-    const grid = []; // grid[i][j] = vertex index, used to index lines
+    const grid = [];
     let idx = 0;
     for (let i = 0; i <= segU; i++) {
       grid[i] = [];
@@ -24,8 +22,6 @@
       const halfU = u / 2;
       const ch = Math.cos(halfU), sh = Math.sin(halfU);
 
-      // Radial outward and global up form the un-twisted frame.
-      // Twist them by half-u to get the twisted cross-section axes (e, f).
       const ex =  cu * ch;
       const ey =  su * ch;
       const ez =  sh;
@@ -47,8 +43,6 @@
       }
     }
 
-    // Build a sparse wireframe: every line in u (around the loop), and every
-    // 2nd line in v (around the cross-section) so it doesn't look too dense.
     const lines = [];
     const pushLine = (a, b) => lines.push(
       positions[a*3], positions[a*3+1], positions[a*3+2],
@@ -70,45 +64,54 @@
     return geo;
   }
 
-  function init() {
-    const canvas = document.getElementById('bg');
+  function init(opts) {
+    opts = opts || {};
+    const preview = !!opts.preview;
+    const canvas = opts.canvas || document.getElementById('bg');
+    const width  = opts.width  || window.innerWidth;
+    const height = opts.height || window.innerHeight;
     if (!canvas || !window.THREE) return;
 
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: !preview, alpha: true });
+    renderer.setPixelRatio(preview ? 1 : Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(width, height);
 
     scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 2000);
+    camera = new THREE.PerspectiveCamera(55, width / height, 1, 2000);
     camera.position.set(0, 0, 320);
 
-    const outerGeo = makeMobiusTube(100, 30, 240, 24);
+    const outerSegU = preview ? 120 : 240;
+    const outerSegV = preview ? 12 : 24;
+    const outerGeo = makeMobiusTube(100, 30, outerSegU, outerSegV);
     const outerMat = new THREE.LineBasicMaterial({
       color: 0x00f0ff, transparent: true, opacity: 0.55,
     });
     mesh = new THREE.LineSegments(outerGeo, outerMat);
     scene.add(mesh);
 
-    // A second, slightly smaller tube nested inside, in magenta — gives depth.
-    const innerGeo = makeMobiusTube(100, 22, 160, 18);
+    const innerSegU = preview ? 80 : 160;
+    const innerSegV = preview ? 9 : 18;
+    const innerGeo = makeMobiusTube(100, 22, innerSegU, innerSegV);
     const innerMat = new THREE.LineBasicMaterial({
       color: 0xff00aa, transparent: true, opacity: 0.18,
     });
     innerMesh = new THREE.LineSegments(innerGeo, innerMat);
     scene.add(innerMesh);
 
-    mouseHandler = e => {
-      mouseX = (e.clientX / window.innerWidth - 0.5);
-      mouseY = (e.clientY / window.innerHeight - 0.5);
-    };
-    document.addEventListener('mousemove', mouseHandler);
+    if (!preview) {
+      mouseHandler = e => {
+        mouseX = (e.clientX / window.innerWidth - 0.5);
+        mouseY = (e.clientY / window.innerHeight - 0.5);
+      };
+      document.addEventListener('mousemove', mouseHandler);
 
-    resizeHandler = () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    };
-    window.addEventListener('resize', resizeHandler);
+      resizeHandler = () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      };
+      window.addEventListener('resize', resizeHandler);
+    }
 
     let last = performance.now();
     function frame(now) {
@@ -124,7 +127,6 @@
       innerMesh.rotation.y =  mesh.rotation.y * 1.3;
       innerMesh.rotation.z = -mesh.rotation.z;
 
-      // Subtle parallax from the cursor.
       camera.position.x += (mouseX * 30 - camera.position.x) * 0.03;
       camera.position.y += (-mouseY * 30 - camera.position.y) * 0.03;
       camera.lookAt(0, 0, 0);

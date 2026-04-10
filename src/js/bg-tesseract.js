@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════
-// TESSERACT — uncommon (1.5%)
+// TESSERACT — rare
 // A 4D hypercube projected into 3D, rotating in the xw and yw planes
 // (the rotations that mix the fourth dimension with our familiar three).
 // Two nested tesseracts at different scales add depth.
@@ -13,7 +13,6 @@
   let outerEdges, innerEdges;
   let mouseX = 0, mouseY = 0;
 
-  // 16 vertices of a tesseract: every combination of (±1, ±1, ±1, ±1).
   function makeTesseractVertices(scale) {
     const v = [];
     for (let i = 0; i < 16; i++) {
@@ -27,17 +26,15 @@
     return v;
   }
 
-  // Two vertices form an edge iff they differ in exactly one coordinate.
   function makeTesseractEdges() {
     const edges = [];
     for (let i = 0; i < 16; i++) {
       for (let j = i + 1; j < 16; j++) {
         const diff = i ^ j;
-        // popcount === 1
         if (diff && (diff & (diff - 1)) === 0) edges.push([i, j]);
       }
     }
-    return edges; // 32 edges
+    return edges;
   }
 
   function rotXW(p, c, s) { const x = p[0], w = p[3]; p[0] = x*c - w*s; p[3] = x*s + w*c; }
@@ -45,7 +42,6 @@
   function rotZW(p, c, s) { const z = p[2], w = p[3]; p[2] = z*c - w*s; p[3] = z*s + w*c; }
   function rotXY(p, c, s) { const x = p[0], y = p[1]; p[0] = x*c - y*s; p[1] = x*s + y*c; }
 
-  // Perspective project from 4D to 3D.
   function project(p, distance) {
     const k = distance / (distance - p[3]);
     return [p[0] * k, p[1] * k, p[2] * k];
@@ -71,16 +67,20 @@
     geo.attributes.position.needsUpdate = true;
   }
 
-  function init() {
-    const canvas = document.getElementById('bg');
+  function init(opts) {
+    opts = opts || {};
+    const preview = !!opts.preview;
+    const canvas = opts.canvas || document.getElementById('bg');
+    const width  = opts.width  || window.innerWidth;
+    const height = opts.height || window.innerHeight;
     if (!canvas || !window.THREE) return;
 
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: !preview, alpha: true });
+    renderer.setPixelRatio(preview ? 1 : Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(width, height);
 
     scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 2000);
+    camera = new THREE.PerspectiveCamera(50, width / height, 1, 2000);
     camera.position.set(0, 0, 6);
 
     outerVerts4D = makeTesseractVertices(1.0);
@@ -102,28 +102,27 @@
     scene.add(outerLines);
     scene.add(innerLines);
 
-    resizeHandler = () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    };
-    window.addEventListener('resize', resizeHandler);
+    if (!preview) {
+      resizeHandler = () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      };
+      window.addEventListener('resize', resizeHandler);
 
-    mouseHandler = e => {
-      mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
-      mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
-    };
-    document.addEventListener('mousemove', mouseHandler);
+      mouseHandler = e => {
+        mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+        mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+      };
+      document.addEventListener('mousemove', mouseHandler);
+    }
 
     let last = performance.now();
     function frame(now) {
       raf = requestAnimationFrame(frame);
       const dt = (now - last) / 1000; last = now;
 
-      // The mouse accelerates 4D rotation — moving the cursor "spins" the cube
-      // through hyperspace. Base rate keeps gentle ambient motion when idle.
       const mouseBoost = 1 + Math.abs(mouseX) * 2 + Math.abs(mouseY) * 2;
-      // Outer cube: rotates in xw and yw planes — the signature 4D motion.
       const a = dt * 0.175 * mouseBoost * (mouseX >= 0 ? 1 : -1);
       const b = dt * 0.105 * mouseBoost * (mouseY >= 0 ? 1 : -1);
       const c = dt * 0.04;
@@ -138,7 +137,6 @@
       }
       updateLineGeometry(outerLines.geometry, outerVerts4D, outerEdges, 4);
 
-      // Inner cube counter-rotates.
       const ica = Math.cos(-a * 0.7), isa = Math.sin(-a * 0.7);
       const icb = Math.cos( b * 0.5), isb = Math.sin( b * 0.5);
       for (const p of innerVerts4D) {
@@ -147,15 +145,12 @@
       }
       updateLineGeometry(innerLines.geometry, innerVerts4D, innerEdges, 4);
 
-      // Slow ambient drift of the whole scene.
       const t = now * 0.00015;
       outerLines.rotation.z = Math.sin(t) * 0.15;
       innerLines.rotation.z = -Math.sin(t * 1.3) * 0.2;
-      // Subtle scale pulse — like the cube is "breathing" through 4D.
       const pulse = 1 + Math.sin(now * 0.0004) * 0.04;
       outerLines.scale.setScalar(pulse);
 
-      // Cursor parallax: ease the camera toward the mouse offset.
       camera.position.x += (mouseX * 1.5 - camera.position.x) * 0.04;
       camera.position.y += (-mouseY * 1.5 - camera.position.y) * 0.04;
       camera.lookAt(0, 0, 0);
