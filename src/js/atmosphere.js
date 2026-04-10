@@ -148,14 +148,24 @@
     }
   }
 
-  // Advance to the next variant in canonical order. Includes hidden ones
-  // so the Enter-cycle can reach future secret atmospheres.
-  function cycleToNext() {
+  function randomSwitch() {
     const current = active && active.name;
-    const idx = VARIANTS.findIndex(v => v.name === current);
-    const next = VARIANTS[(idx + 1) % VARIANTS.length];
-    writeCookie(next.name);
-    activateWhenReady(next.name);
+    const eligible = VARIANTS.filter(v => !v.hidden);
+    const total = eligible.reduce(function(a, v) {
+      var w = effectiveWeight(v);
+      if (v.name === current) w /= 100;
+      return a + w;
+    }, 0);
+    var r = Math.random() * total;
+    var picked = eligible[0].name;
+    for (var i = 0; i < eligible.length; i++) {
+      var w = effectiveWeight(eligible[i]);
+      if (eligible[i].name === current) w /= 100;
+      r -= w;
+      if (r <= 0) { picked = eligible[i].name; break; }
+    }
+    writeCookie(picked);
+    activateWhenReady(picked);
   }
 
   // Wait until the chosen module has registered before activating it.
@@ -179,7 +189,7 @@
   function rarityLabel(name) {
     const v = VARIANTS.find(x => x.name === name);
     if (!v) return name;
-    return name + ' · ' + v.weight + '%';
+    return name + ' · w' + v.weight;
   }
   function logBanner(variant) {
     if (!bannerPrinted) {
@@ -203,8 +213,7 @@
         'color: #c8d8e8; font-size: 12px;'
       );
       console.log(
-        '%cThe starfield has siblings. Try ↑↑↓↓←→←→ B A Enter to cycle, or ↑↑↓↓←→←→ B A 1-' +
-          VARIANTS.length + ' to jump. Atmosphere.list() for names.',
+        '%cThe starfield has siblings. Try ↑↑↓↓←→←→ B A Enter to shuffle. Atmosphere.list() for names.',
         'color: #8899aa; font-size: 11px; font-style: italic;'
       );
       console.log(
@@ -219,36 +228,25 @@
   }
 
   // ── Konami code ──
-  //   ↑↑↓↓←→←→ B A [1-9]    → jump directly to variant N
-  //   ↑↑↓↓←→←→ B A Enter    → cycle to the next variant
-  const KONAMI_PREFIX = [
+  //   ↑↑↓↓←→←→ B A Enter → weighted random shuffle (current variant ÷100)
+  const KONAMI = [
     'ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown',
     'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight',
-    'b', 'a',
+    'b', 'a', 'Enter',
   ];
   let buffer = [];
   function onKey(e) {
     const key = (e.key && e.key.length === 1) ? e.key.toLowerCase() : e.key;
     buffer.push(key);
-    if (buffer.length > KONAMI_PREFIX.length + 1) {
-      buffer = buffer.slice(-(KONAMI_PREFIX.length + 1));
+    if (buffer.length > KONAMI.length) {
+      buffer = buffer.slice(-KONAMI.length);
     }
-    if (buffer.length < KONAMI_PREFIX.length + 1) return;
-    for (let i = 0; i < KONAMI_PREFIX.length; i++) {
-      if (buffer[i] !== KONAMI_PREFIX[i]) return;
+    if (buffer.length < KONAMI.length) return;
+    for (let i = 0; i < KONAMI.length; i++) {
+      if (buffer[i] !== KONAMI[i]) return;
     }
-    const last = buffer[KONAMI_PREFIX.length];
     buffer = [];
-    if (last === 'Enter') {
-      cycleToNext();
-      return;
-    }
-    const idx = parseInt(last, 10) - 1;
-    if (idx >= 0 && idx < VARIANTS.length) {
-      const target = VARIANTS[idx].name;
-      writeCookie(target);
-      activateWhenReady(target);
-    }
+    randomSwitch();
   }
   document.addEventListener('keydown', onKey);
 
@@ -263,7 +261,7 @@
       activateWhenReady(name);
       return true;
     },
-    next: () => cycleToNext(),
+    next: () => randomSwitch(),
     clear: clearCookie,
   };
 
