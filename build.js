@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { marked } = require('marked');
 
 const DIST = 'dist';
 const layout = fs.readFileSync('src/layouts/base.html', 'utf8');
@@ -7,6 +8,7 @@ const layout = fs.readFileSync('src/layouts/base.html', 'utf8');
 const pages = [
   { src: 'src/pages/index.html', out: path.join(DIST, 'index.html') },
   { src: 'src/pages/talks.html', out: path.join(DIST, 'talks', 'index.html') },
+  { src: 'src/pages/atmosphere.html', out: path.join(DIST, 'atmosphere', 'index.html') },
   { src: 'src/work/ipo-security.html', out: path.join(DIST, 'work', 'ipo-security.html') },
   { src: 'src/work/il5-auth.html', out: path.join(DIST, 'work', 'il5-auth.html') },
   { src: 'src/work/e2ee-platform.html', out: path.join(DIST, 'work', 'e2ee-platform.html') },
@@ -91,5 +93,33 @@ for (const file of passthroughFiles) {
     console.log(`  copied ${file.src} -> ${file.out}`);
   }
 }
+
+// ── /now page: Markdown → HTML ──
+const nowMd = fs.readFileSync('src/now/content.md', 'utf8');
+const fmMatch = nowMd.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+const frontmatter = fmMatch ? fmMatch[1] : '';
+const mdBody = fmMatch ? fmMatch[2] : nowMd;
+const updated = (frontmatter.match(/updated:\s*(.+)/) || [])[1] || 'unknown';
+const renderedMd = marked.parse(mdBody);
+
+const nowTemplate = fs.readFileSync('src/now/template.html', 'utf8');
+const nowContent = nowTemplate
+  .replace('{{UPDATED}}', updated)
+  .replace('{{CONTENT}}', renderedMd);
+
+const nowTitle = nowContent.match(/<!-- title: (.+?) -->/)?.[1] || 'Now — Eric A Mann';
+const nowDesc  = nowContent.match(/<!-- description: (.+?) -->/)?.[1] || '';
+const nowBody  = nowContent
+  .replace(/<!--\s*title:.*?-->\n?/, '')
+  .replace(/<!--\s*description:.*?-->\n?/, '');
+const nowHtml = layout
+  .replace('{{title}}', nowTitle)
+  .replace('{{description}}', nowDesc)
+  .replace('{{content}}', nowBody);
+
+const nowOut = path.join(DIST, 'now', 'index.html');
+fs.mkdirSync(path.dirname(nowOut), { recursive: true });
+fs.writeFileSync(nowOut, nowHtml);
+console.log(`  built ${nowOut}`);
 
 console.log('\ndone.');

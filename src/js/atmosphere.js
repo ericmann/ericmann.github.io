@@ -19,24 +19,11 @@
 (function() {
   const COOKIE_NAME = 'eam_atmo';
 
-  // Canonical variant list. Order matters: index+1 is the Konami digit.
-  //   weight          — used for the weighted random pick AND to compute
-  //                     the cookie expiry via expiryHoursFor().
-  //   mobileFriendly  — false means the variant is mouse-dependent or too
-  //                     CPU-heavy for low-power devices, and its weight is
-  //                     divided by 10 on touch-primary devices.
-  //   hidden          — reserved for future secret variants. Hidden ones
-  //                     are excluded from the random pick but still
-  //                     reachable via the Konami Enter cycle and
-  //                     Atmosphere.set(). None currently defined.
-  const VARIANTS = [
-    { name: 'starfield', weight: 80, mobileFriendly: true  },
-    { name: 'vaporwave', weight: 4,  mobileFriendly: true  },
-    { name: 'mobius',    weight: 4,  mobileFriendly: true  },
-    { name: 'tesseract', weight: 4,  mobileFriendly: true  },
-    { name: 'abyss',     weight: 4,  mobileFriendly: false },
-    { name: 'dunes',     weight: 4,  mobileFriendly: false },
-  ];
+  // Read from the shared registry (atmosphere-registry.js).
+  // Map 'id' to 'name' for backward compat with the rest of this file.
+  const VARIANTS = (window.AtmosphereRegistry || []).map(function(v) {
+    return { name: v.id, weight: v.weight, mobileFriendly: v.mobileFriendly, hidden: v.hidden };
+  });
 
   // ── Environment checks ──
   function prefersReducedMotion() {
@@ -82,6 +69,17 @@
   }
   function isValidVariant(name) {
     return VARIANTS.some(v => v.name === name);
+  }
+
+  // ── Collection tracking ──
+  function trackSeen(name) {
+    try {
+      var seen = JSON.parse(localStorage.getItem('eam_atmo_seen') || '[]');
+      if (seen.indexOf(name) === -1) {
+        seen.push(name);
+        localStorage.setItem('eam_atmo_seen', JSON.stringify(seen));
+      }
+    } catch (e) { /* localStorage unavailable */ }
   }
 
   // ── Random pick ──
@@ -141,6 +139,7 @@
       mod.init();
       active = { name, module: mod };
       document.documentElement.setAttribute('data-atmosphere', name);
+      trackSeen(name);
       logBanner(name);
       return true;
     } catch (e) {
@@ -207,6 +206,10 @@
         '%cThe starfield has siblings. Try ↑↑↓↓←→←→ B A Enter to cycle, or ↑↑↓↓←→←→ B A 1-' +
           VARIANTS.length + ' to jump. Atmosphere.list() for names.',
         'color: #8899aa; font-size: 11px; font-style: italic;'
+      );
+      console.log(
+        '%c// atmosphere index: /atmosphere/',
+        'color: #00f0ff55; font-size: 10px;'
       );
     }
     console.log(
