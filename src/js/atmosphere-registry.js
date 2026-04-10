@@ -11,10 +11,17 @@
 //   mobileFriendly — false = weight ÷ 10 on touch-primary devices
 // ═══════════════════════════════════════
 window.AtmosphereRegistry = [
-  { id: 'starfield',  name: 'Starfield',  weight: 80, rarity: 'default', mobileFriendly: true  },
-  { id: 'vaporwave',  name: 'Vaporwave',  weight: 4,  rarity: 'rare',    mobileFriendly: true  },
-  { id: 'mobius',     name: 'Möbius',      weight: 4,  rarity: 'rare',    mobileFriendly: true  },
-  { id: 'tesseract',  name: 'Tesseract',   weight: 4,  rarity: 'rare',    mobileFriendly: true  },
-  { id: 'abyss',      name: 'Abyss',       weight: 4,  rarity: 'exotic',  mobileFriendly: false },
-  { id: 'dunes',      name: 'Dunes',       weight: 4,  rarity: 'exotic',  mobileFriendly: false },
+  { id: 'starfield',      name: 'Starfield',      weight: 80, rarity: 'default',  mobileFriendly: true  },
+  { id: 'vaporwave',      name: 'Vaporwave',      weight: 40, rarity: 'uncommon', mobileFriendly: true  },
+  { id: 'constellation',  name: 'Constellation',  weight: 40, rarity: 'uncommon', mobileFriendly: true  },
+  { id: 'mobius',         name: 'Möbius',          weight: 4,  rarity: 'rare',     mobileFriendly: true  },
+  { id: 'tesseract',     name: 'Tesseract',       weight: 4,  rarity: 'rare',     mobileFriendly: true  },
+  { id: 'rain',           name: 'Rain',            weight: 4,  rarity: 'rare',     mobileFriendly: true  },
+  { id: 'forge',          name: 'Forge',           weight: 4,  rarity: 'rare',     mobileFriendly: false },
+  { id: 'abyss',          name: 'Abyss',           weight: 4,  rarity: 'exotic',   mobileFriendly: false },
+  { id: 'dunes',          name: 'Dunes',           weight: 4,  rarity: 'exotic',   mobileFriendly: false },
+  { id: 'fireflies',     name: 'Fireflies',       weight: 2,  rarity: 'exotic',   mobileFriendly: true  },
+  { id: 'sonar',          name: 'Sonar',           weight: 2,  rarity: 'exotic',   mobileFriendly: false },
+  { id: 'roots',          name: 'Roots',           weight: 2,  rarity: 'exotic',   mobileFriendly: true  },
+  { id: 'aurora',         name: 'Aurora',          weight: 2,  rarity: 'exotic',   mobileFriendly: false },
 ];

@@ -810,6 +810,7 @@ footer {
   text-transform: uppercase;
 }
 .atmo-rarity.default { color: var(--text-dim); }
+.atmo-rarity.uncommon { color: var(--magenta); }
 .atmo-rarity.rare { color: var(--cyan); }
 .atmo-rarity.exotic { color: var(--amber); }
 .atmo-status {
