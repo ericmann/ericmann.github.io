@@ -1,9 +1,9 @@
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const { marked } = require('marked');
 
 const DIST = 'dist';
-const layout = fs.readFileSync('src/layouts/base.html', 'utf8');
 
 const pages = [
   { src: 'src/pages/index.html', out: path.join(DIST, 'index.html') },
@@ -54,8 +54,56 @@ function clean(dir) {
   }
 }
 
+// ── Build ──
+
 clean(DIST);
 
+// 1. Copy static assets first (css, js, fonts)
+for (const dir of staticDirs) {
+  copyDir(dir.src, dir.out);
+  console.log(`  copied ${dir.src} -> ${dir.out}`);
+}
+
+// 2. Hash-rename CSS/JS files in dist and build a rewrite map
+//    e.g. /css/core.css → /css/core.a1b2c3d4.css
+const assetMap = {};
+
+function hashRenameDir(dir) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      hashRenameDir(fullPath);
+      continue;
+    }
+    const ext = path.extname(entry.name);
+    if (ext !== '.css' && ext !== '.js') continue;
+
+    const content = fs.readFileSync(fullPath);
+    const hash = crypto.createHash('md5').update(content).digest('hex').slice(0, 8);
+    const base = path.basename(entry.name, ext);
+    const hashedName = `${base}.${hash}${ext}`;
+    const hashedPath = path.join(dir, hashedName);
+
+    fs.renameSync(fullPath, hashedPath);
+
+    const origUrl = '/' + path.relative(DIST, fullPath);
+    const hashedUrl = '/' + path.relative(DIST, hashedPath);
+    assetMap[origUrl] = hashedUrl;
+  }
+}
+
+hashRenameDir(path.join(DIST, 'css'));
+hashRenameDir(path.join(DIST, 'js'));
+
+console.log(`  hashed ${Object.keys(assetMap).length} assets`);
+
+// 3. Read layout and rewrite asset references
+let layout = fs.readFileSync('src/layouts/base.html', 'utf8');
+for (const [orig, hashed] of Object.entries(assetMap)) {
+  layout = layout.split(orig).join(hashed);
+}
+
+// 4. Build pages
 for (const page of pages) {
   const raw = fs.readFileSync(page.src, 'utf8');
   const title = raw.match(/<!-- title: (.+?) -->/)?.[1] || 'Eric A Mann';
@@ -74,11 +122,7 @@ for (const page of pages) {
   console.log(`  built ${page.out}`);
 }
 
-for (const dir of staticDirs) {
-  copyDir(dir.src, dir.out);
-  console.log(`  copied ${dir.src} -> ${dir.out}`);
-}
-
+// 5. Copy passthrough directories and files
 for (const dir of passthrough) {
   if (fs.existsSync(dir.src)) {
     copyDir(dir.src, dir.out);
