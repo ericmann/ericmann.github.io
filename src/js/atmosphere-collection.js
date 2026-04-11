@@ -20,7 +20,9 @@
     } catch (e) { return []; }
   }
 
-  var seen = getSeen();
+  var rawSeen = getSeen();
+  var registryIds = ATMOSPHERES.map(function(a) { return a.id; });
+  var seen = rawSeen.filter(function(id) { return registryIds.indexOf(id) !== -1; });
   var countEl = document.getElementById('atmo-count');
   if (countEl) countEl.textContent = seen.length;
   var totalEl = document.getElementById('atmo-total');
