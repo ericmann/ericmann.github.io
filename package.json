@@ -5,7 +5,7 @@
     "build": "node build.js"
   },
   "dependencies": {
-    "marked": "^18.0.0"
+    "marked": "^18.0.2"
   },
   "devDependencies": {
     "playwright": "^1.59.1"
